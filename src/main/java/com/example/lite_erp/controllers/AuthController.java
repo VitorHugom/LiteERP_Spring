@@ -22,7 +22,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO body) {
-        Usuario usuario = this.repository.findByEmail(body.email()).orElseThrow(() -> new RuntimeException("User not found"));
+        Usuario usuario = this.repository.findByNomeUsuario(body.nomeUsuario()).orElseThrow(() -> new RuntimeException("User not found"));
 
         // Verifica se o usuário está autorizado antes de gerar o token
         if (!"autorizado".equals(usuario.getStatus())) {
@@ -31,7 +31,7 @@ public class AuthController {
 
         if (passwordEncoder.matches(body.senha(), usuario.getSenha())) {
             String token = this.tokenService.generateToken(usuario);
-            return ResponseEntity.ok(new LoginResponseDTO(usuario.getNome_usuario(), token));
+            return ResponseEntity.ok(new LoginResponseDTO(usuario.getNomeUsuario(), token));
         }
 
         return ResponseEntity.badRequest().build();
@@ -39,14 +39,14 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterRequestDTO body) {
-        Optional<Usuario> usuario = this.repository.findByEmail(body.email());
+        Optional<Usuario> usuario = this.repository.findByNomeUsuario(body.nomeUsuario());
 
         if (usuario.isEmpty()) {
             Usuario novo_usuario = new Usuario();
 
             novo_usuario.setSenha(passwordEncoder.encode(body.senha()));
             novo_usuario.setEmail(body.email());
-            novo_usuario.setNome_usuario(body.nome_usuario());
+            novo_usuario.setNomeUsuario(body.nomeUsuario());
             novo_usuario.setCategoria_id(body.categoria_id());
             novo_usuario.setStatus("bloqueado"); // Usuário começa com status "bloqueado"
             this.repository.save(novo_usuario);

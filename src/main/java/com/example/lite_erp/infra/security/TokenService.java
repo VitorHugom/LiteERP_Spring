@@ -24,26 +24,21 @@ public class TokenService {
 
     public String generateToken(Usuario usuario) {
         try {
-            logger.info("Gerando token para o usuário: {}", usuario.getEmail());
 
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
                     .withIssuer("login-auth-api")
-                    .withSubject(usuario.getEmail())
+                    .withSubject(usuario.getNomeUsuario())
                     .withExpiresAt(this.generateExpirationDate())
                     .sign(algorithm);
-
-            logger.info("Token gerado com sucesso: {}", token);
             return token;
         } catch (JWTCreationException exception) {
-            logger.error("Erro ao gerar o token para o usuário: {}", usuario.getEmail(), exception);
             throw new RuntimeException("Erro ao autenticar", exception);
         }
     }
 
     public String validateToken(String token) {
         try {
-            logger.info("Validando token: {}", token);
 
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String subject = JWT.require(algorithm)
@@ -51,18 +46,14 @@ public class TokenService {
                     .build()
                     .verify(token)
                     .getSubject();
-
-            logger.info("Token válido para o usuário: {}", subject);
             return subject;
         } catch (JWTVerificationException exception) {
-            logger.error("Erro ao validar o token: {}", token, exception);
             return null;
         }
     }
 
     private Instant generateExpirationDate() {
         Instant expirationDate = LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
-        logger.info("Data de expiração gerada: {}", expirationDate);
         return expirationDate;
     }
 }

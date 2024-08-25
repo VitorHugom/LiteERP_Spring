@@ -26,40 +26,33 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("Iniciando configuração da SecurityFilterChain");
 
         http
                 .csrf(csrf -> {
-                    System.out.println("Desabilitando CSRF");
                     csrf.disable();
                 })
                 .sessionManagement(session -> {
-                    System.out.println("Configurando política de sessão para STATELESS");
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS);
                 })
                 .authorizeHttpRequests(authorize -> {
-                    System.out.println("Configurando autorização de requisições");
                     authorize
                             .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                             .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                            .requestMatchers("/usuario/**").hasRole("GERENCIAL")
                             .anyRequest().authenticated();
                 })
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-
-        System.out.println("Configuração da SecurityFilterChain concluída");
 
         return http.build();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        System.out.println("Criando bean PasswordEncoder usando BCryptPasswordEncoder");
         return new BCryptPasswordEncoder();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        System.out.println("Criando bean AuthenticationManager");
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

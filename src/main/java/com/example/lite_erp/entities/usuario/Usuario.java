@@ -1,5 +1,6 @@
 package com.example.lite_erp.entities.usuario;
 
+import com.example.lite_erp.entities.categoria_usuario.CategoriasUsuario;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,9 +18,19 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nome_usuario;
+    @Column(name = "nome_usuario")
+    private String nomeUsuario;
+
     private String email;
     private String senha;
     private Integer categoria_id;
     private String status;
+
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", insertable = false, updatable = false)
+    private CategoriasUsuario categoria;
+
+    public String getRole() {
+        return "ROLE_" + this.categoria.getNome_categoria().toUpperCase();
+    }
 }

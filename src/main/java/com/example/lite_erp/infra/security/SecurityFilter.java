@@ -33,27 +33,18 @@ public class SecurityFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var token = this.recoverToken(request);
-        logger.info("Token recuperado: {}", token); // Log do token recuperado
-
         var login = tokenService.validateToken(token);
-        logger.info("Login associado ao token: {}", login); // Log do login extraído do token
 
         if (login != null) {
-            Optional<Usuario> optionalUser = userRepository.findByEmail(login);
+            Optional<Usuario> optionalUser = userRepository.findByNomeUsuario(login);
             if (optionalUser.isPresent()) {
                 Usuario user = optionalUser.get();
-                logger.info("Usuário encontrado: {}", user.getEmail()); // Log após encontrar o usuário
 
-                var authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+                // Definindo as authorities com base na role extraída do nome_categoria
+                var authorities = Collections.singletonList(new SimpleGrantedAuthority(user.getRole()));
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                logger.info("Autenticação configurada para o usuário: {}", user.getEmail());
-                logger.info("Contexto de Segurança: {}", SecurityContextHolder.getContext().getAuthentication());
-            } else {
-                logger.warn("Usuário não encontrado para o login: {}", login); // Log se o usuário não for encontrado
             }
-        } else {
-            logger.warn("Token inválido ou não fornecido."); // Log se o token for inválido
         }
 
         filterChain.doFilter(request, response);
@@ -62,7 +53,6 @@ public class SecurityFilter extends OncePerRequestFilter {
     private String recoverToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
         if (authHeader == null) {
-            logger.warn("Cabeçalho de autorização ausente"); // Log se o cabeçalho de autorização estiver ausente
             return null;
         }
         return authHeader.replace("Bearer ", "");
