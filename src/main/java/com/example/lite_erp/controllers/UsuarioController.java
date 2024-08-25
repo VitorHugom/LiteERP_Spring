@@ -33,6 +33,7 @@ public class UsuarioController {
     @PutMapping("/aprovar/{id}")
     public ResponseEntity<String> aprovarUsuario(@PathVariable String id) {
         Optional<Usuario> optionalUsuario = usuarioRepository.findById(id);
+
         if (optionalUsuario.isPresent()) {
             Usuario usuario = optionalUsuario.get();
             usuario.setStatus("autorizado"); // Mudando o status para autorizado
