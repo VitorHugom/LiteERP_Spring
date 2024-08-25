@@ -24,6 +24,7 @@ public class TokenService {
 
     public String generateToken(Usuario usuario) {
         try {
+            logger.info("Iniciando a geração de token para o usuário: {}", usuario.getNomeUsuario());
 
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
@@ -31,14 +32,18 @@ public class TokenService {
                     .withSubject(usuario.getNomeUsuario())
                     .withExpiresAt(this.generateExpirationDate())
                     .sign(algorithm);
+
+            logger.info("Token gerado com sucesso para o usuário: {}", usuario.getNomeUsuario());
             return token;
         } catch (JWTCreationException exception) {
+            logger.error("Erro ao gerar o token para o usuário: {} - Erro: {}", usuario.getNomeUsuario(), exception.getMessage());
             throw new RuntimeException("Erro ao autenticar", exception);
         }
     }
 
     public String validateToken(String token) {
         try {
+            logger.info("Iniciando a validação do token.");
 
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String subject = JWT.require(algorithm)
@@ -46,14 +51,18 @@ public class TokenService {
                     .build()
                     .verify(token)
                     .getSubject();
+
+            logger.info("Token validado com sucesso. Usuário autenticado: {}", subject);
             return subject;
         } catch (JWTVerificationException exception) {
+            logger.error("Erro ao validar o token: {} - Erro: {}", token, exception.getMessage());
             return null;
         }
     }
 
     private Instant generateExpirationDate() {
         Instant expirationDate = LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        logger.info("Data de expiração do token gerada: {}", expirationDate);
         return expirationDate;
     }
 }

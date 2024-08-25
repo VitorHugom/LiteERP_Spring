@@ -5,16 +5,15 @@ import com.example.lite_erp.infra.security.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class AuthController {
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
@@ -51,7 +50,8 @@ public class AuthController {
             novo_usuario.setStatus("bloqueado"); // Usuário começa com status "bloqueado"
             this.repository.save(novo_usuario);
 
-            return ResponseEntity.ok("User registered successfully. Awaiting authorization.");
+            return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+
         }
 
         return ResponseEntity.badRequest().build();
