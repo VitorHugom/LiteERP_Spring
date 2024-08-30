@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -54,18 +56,26 @@ public class UsuarioController {
     }
 
     @PutMapping("/aprovar/{id}")
-    public ResponseEntity<String> aprovarUsuario(@PathVariable String id) {
+    public ResponseEntity<Map<String, String>> aprovarUsuario(@PathVariable String id) {
         Optional<Usuario> optionalUsuario = usuarioRepository.findById(id);
 
         if (optionalUsuario.isPresent()) {
             Usuario usuario = optionalUsuario.get();
             usuario.setStatus("autorizado"); // Mudando o status para autorizado
             usuarioRepository.save(usuario);
-            return ResponseEntity.ok("Usuário aprovado com sucesso.");
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuário aprovado com sucesso.");
+
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Usuário não encontrado.");
+
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
 
     @GetMapping("/bloqueados")
     public ResponseEntity<List<Usuario>> getUsuariosBloqueados() {
