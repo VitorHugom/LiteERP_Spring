@@ -3,6 +3,8 @@ package com.example.lite_erp.controllers;
 import com.example.lite_erp.entities.usuario.Usuario;
 import com.example.lite_erp.entities.usuario.UsuarioRepository;
 import com.example.lite_erp.entities.usuario.UsuarioResponseDTO;
+import com.example.lite_erp.services.UsuarioService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +24,9 @@ public class UsuarioController {
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
     private final UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     public UsuarioController(UsuarioRepository usuarioRepository) {
         this.usuarioRepository = usuarioRepository;
@@ -59,6 +64,31 @@ public class UsuarioController {
             return ResponseEntity.ok("Usuário aprovado com sucesso.");
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado.");
+        }
+    }
+
+    @GetMapping("/bloqueados")
+    public ResponseEntity<List<Usuario>> getUsuariosBloqueados() {
+        List<Usuario> usuariosBloqueados = usuarioService.getUsuariosBloqueados();
+        return ResponseEntity.ok(usuariosBloqueados);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<UsuarioResponseDTO> getUsuarioById(@PathVariable String id) {
+        Optional<Usuario> optionalUsuario = usuarioRepository.findById(id);
+
+        if (optionalUsuario.isPresent()) {
+            Usuario usuario = optionalUsuario.get();
+            UsuarioResponseDTO usuarioDTO = new UsuarioResponseDTO(
+                    usuario.getId(),
+                    usuario.getNomeUsuario(),
+                    usuario.getEmail(),
+                    usuario.getStatus(),
+                    usuario.getCategoria().getNome_categoria()
+            );
+            return ResponseEntity.ok(usuarioDTO);
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
 }
