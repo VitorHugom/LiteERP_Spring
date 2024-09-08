@@ -3,6 +3,8 @@ package com.example.lite_erp.controllers;
 import com.example.lite_erp.entities.usuario.Usuario;
 import com.example.lite_erp.entities.usuario.UsuarioRepository;
 import com.example.lite_erp.entities.usuario.UsuarioResponseDTO;
+import com.example.lite_erp.entities.vendedores.Vendedores;
+import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import com.example.lite_erp.services.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +28,8 @@ public class UsuarioController {
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
     private final UsuarioRepository usuarioRepository;
+    @Autowired
+    private VendedoresRepository vendedoresRepository;
 
     @Autowired
     private UsuarioService usuarioService;
@@ -47,6 +51,7 @@ public class UsuarioController {
                         usuario.getId(),
                         usuario.getNomeUsuario(),
                         usuario.getEmail(),
+                        usuario.getTelefone(),
                         usuario.getStatus(),
                         usuario.getCategoria().getNome_categoria()
                 ))
@@ -64,17 +69,29 @@ public class UsuarioController {
             usuario.setStatus("autorizado"); // Mudando o status para autorizado
             usuarioRepository.save(usuario);
 
+            // Verificar se a categoria do usuário é "Vendas"
+            if (usuario.getCategoria() != null && usuario.getCategoria().getNome_categoria().equalsIgnoreCase("vendas")) {
+                // Criar o vendedor e associar ao usuário
+                Vendedores novoVendedor = new Vendedores();
+                novoVendedor.setNome(usuario.getNomeUsuario());
+                novoVendedor.setEmail(usuario.getEmail());
+                novoVendedor.setTelefone(usuario.getTelefone());
+                novoVendedor.setUsuario(usuario); // Vinculando o vendedor ao usuário
+
+                // Salvar o vendedor no banco de dados
+                vendedoresRepository.save(novoVendedor);
+            }
+
             Map<String, String> response = new HashMap<>();
             response.put("message", "Usuário aprovado com sucesso.");
-
             return ResponseEntity.ok(response);
         } else {
             Map<String, String> response = new HashMap<>();
             response.put("message", "Usuário não encontrado.");
-
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
     }
+
 
 
     @GetMapping("/bloqueados")
@@ -93,6 +110,7 @@ public class UsuarioController {
                     usuario.getId(),
                     usuario.getNomeUsuario(),
                     usuario.getEmail(),
+                    usuario.getTelefone(),
                     usuario.getStatus(),
                     usuario.getCategoria().getNome_categoria()
             );

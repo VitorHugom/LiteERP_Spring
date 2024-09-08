@@ -26,6 +26,8 @@ public class Usuario {
     private Integer categoria_id;
     private String status;
 
+    private String telefone;
+
     @ManyToOne
     @JoinColumn(name = "categoria_id", insertable = false, updatable = false)
     private CategoriasUsuario categoria;
