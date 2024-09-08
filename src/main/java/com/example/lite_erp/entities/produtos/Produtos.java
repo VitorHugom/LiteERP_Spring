@@ -1,5 +1,6 @@
 package com.example.lite_erp.entities.produtos;
 
+import com.example.lite_erp.entities.grupo_produto.GrupoProdutos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,8 +23,9 @@ public class Produtos {
 
     private String descricao;
 
-    @Column(name = "grupo_produtos")
-    private Long grupoProdutos;
+    @ManyToOne
+    @JoinColumn(name = "grupo_produtos", referencedColumnName = "id")
+    private GrupoProdutos grupoProdutos;
 
     private String marca;
 

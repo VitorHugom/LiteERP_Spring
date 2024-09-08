@@ -9,5 +9,4 @@ public class LiteErpApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(LiteErpApplication.class, args);
 	}
-
 }
