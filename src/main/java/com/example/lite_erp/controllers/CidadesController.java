@@ -1,6 +1,6 @@
 package com.example.lite_erp.controllers;
 
-import com.example.lite_erp.entities.Cidades;
+import com.example.lite_erp.entities.cidades.Cidades;
 import com.example.lite_erp.entities.cidades.CidadesRepository;
 import com.example.lite_erp.entities.cidades.CidadesResponseDTO;
 import org.springframework.data.domain.Page;

@@ -1,6 +1,6 @@
 package com.example.lite_erp.entities.clientes;
 
-import com.example.lite_erp.entities.Cidades;
+import com.example.lite_erp.entities.cidades.Cidades;
 import com.example.lite_erp.entities.vendedores.Vendedores;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

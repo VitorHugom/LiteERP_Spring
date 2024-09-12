@@ -1,4 +1,4 @@
-package com.example.lite_erp.entities;
+package com.example.lite_erp.entities.cidades;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

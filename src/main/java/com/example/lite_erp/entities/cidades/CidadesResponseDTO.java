@@ -1,6 +1,6 @@
 package com.example.lite_erp.entities.cidades;
 
-import com.example.lite_erp.entities.Cidades;
+import com.example.lite_erp.entities.cidades.Cidades;
 
 public record CidadesResponseDTO(Long id, String nome, String estado, String codigoIbge) {
     public CidadesResponseDTO(Cidades cidades){
