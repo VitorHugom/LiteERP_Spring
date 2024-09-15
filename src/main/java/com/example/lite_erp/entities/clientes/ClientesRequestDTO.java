@@ -29,6 +29,6 @@ public record ClientesRequestDTO(
         Vendedores vendedor,
         String observacao,
         Boolean status,
-        LocalDateTime dataCadastro,
+        LocalDate dataCadastro,
         BigDecimal limiteCredito
 ) {}

@@ -59,4 +59,13 @@ public class CidadesController {
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
+
+    // Endpoint para buscar cidade pelo código IBGE
+    @GetMapping("/codigoIbge/{codigoIbge}")
+    public ResponseEntity<Cidades> buscarPorCodigoIbge(@PathVariable String codigoIbge) {
+        Optional<Cidades> cidade = repository.findByCodigoIbge(codigoIbge);
+
+        return cidade.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

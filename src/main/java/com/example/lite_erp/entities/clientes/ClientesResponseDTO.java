@@ -30,7 +30,7 @@ public record ClientesResponseDTO(
         Vendedores vendedor,
         String observacao,
         Boolean status,
-        LocalDateTime dataCadastro,
+        LocalDate dataCadastro,
         BigDecimal limiteCredito
 ) {
     public ClientesResponseDTO(Clientes clientes) {

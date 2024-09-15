@@ -52,8 +52,8 @@ public class AuthController {
             novoUsuario.setEmail(body.email());
             novoUsuario.setNomeUsuario(body.nomeUsuario());
             novoUsuario.setCategoria_id(body.categoria_id());
-            novoUsuario.setTelefone(body.telefone()); // Setando telefone do usuário
-            novoUsuario.setStatus("bloqueado"); // Usuário começa com status "bloqueado"
+            novoUsuario.setTelefone(body.telefone());
+            novoUsuario.setStatus("bloqueado");
             this.repository.save(novoUsuario);
 
             return ResponseEntity.ok(Map.of("message", "User registered successfully"));

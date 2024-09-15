@@ -26,6 +26,20 @@ public class VendedoresController {
         this.repository = repository;
     }
 
+    // GET: Retornar todos os vendedores
+    @GetMapping
+    public ResponseEntity<List<VendedoresResponseDTO>> getAllVendedores() {
+        List<Vendedores> vendedoresList = repository.findAll();
+
+        List<VendedoresResponseDTO> vendedoresDTO = vendedoresList
+                .stream()
+                .map(VendedoresResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(vendedoresDTO);
+    }
+
+
     // GET: Listar vendedores com lazy loading (autocomplete)
     @GetMapping("/search")
     public ResponseEntity<List<VendedoresResponseDTO>> getVendedoresByName(

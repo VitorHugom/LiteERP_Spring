@@ -90,7 +90,7 @@ public class Clientes {
     private Boolean status = true;
 
     @Column(name = "data_cadastro")
-    private LocalDateTime dataCadastro = LocalDateTime.now();
+    private LocalDate dataCadastro = LocalDate.now();
 
     @Column(name = "limite_credito", precision = 10, scale = 2)
     private BigDecimal limiteCredito;
