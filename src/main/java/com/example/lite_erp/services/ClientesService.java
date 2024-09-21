@@ -4,6 +4,8 @@ import com.example.lite_erp.entities.clientes.Clientes;
 import com.example.lite_erp.entities.clientes.ClientesRepository;
 import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -88,5 +90,15 @@ public class ClientesService {
             return true;
         }
         return false;
+    }
+
+    // Listar todos os clientes de forma paginada
+    public Page<Clientes> listarTodosPaginado(Pageable pageable) {
+        return clientesRepository.findAll(pageable);
+    }
+
+    // Busca paginada por nome
+    public Page<Clientes> findByNomeContainingIgnoreCase(String nome, Pageable pageable) {
+        return clientesRepository.findByRazaoSocialContainingIgnoreCase(nome, pageable);
     }
 }

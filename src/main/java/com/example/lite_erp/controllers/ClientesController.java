@@ -5,6 +5,10 @@ import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
 import com.example.lite_erp.entities.clientes.ClientesResponseDTO;
 import com.example.lite_erp.services.ClientesService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,5 +55,29 @@ public class ClientesController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<ClientesResponseDTO>> getClientesByName(
+            @RequestParam(required = false) String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("razaoSocial").ascending());
+        Page<Clientes> clientesPage;
+
+        if (nome != null && !nome.isEmpty()) {
+            clientesPage = clientesService.findByNomeContainingIgnoreCase(nome, pageable);
+        } else {
+            clientesPage = clientesService.listarTodosPaginado(pageable);
+        }
+
+        List<ClientesResponseDTO> clientesDTO = clientesPage
+                .getContent()
+                .stream()
+                .map(ClientesResponseDTO::new)
+                .toList();
+
+        return ResponseEntity.ok(clientesDTO);
     }
 }
