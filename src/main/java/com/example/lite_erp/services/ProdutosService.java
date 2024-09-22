@@ -1,5 +1,7 @@
 package com.example.lite_erp.services;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import com.example.lite_erp.entities.produtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,5 +62,15 @@ public class ProdutosService {
             return true;
         }
         return false;
+    }
+
+    // Método de busca por nome (lazy load)
+    public Page<Produtos> findByNomeContainingIgnoreCase(String nome, Pageable pageable) {
+        return produtosRepository.findByDescricaoContainingIgnoreCase(nome, pageable);
+    }
+
+    // Listar todos com paginação
+    public Page<Produtos> listarTodosPaginado(Pageable pageable) {
+        return produtosRepository.findAll(pageable);
     }
 }
