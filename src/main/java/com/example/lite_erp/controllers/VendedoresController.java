@@ -75,6 +75,15 @@ public class VendedoresController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    @GetMapping("/usuario/{userId}")
+    public ResponseEntity<VendedoresResponseDTO> getVendedorByUsuario(@PathVariable Long userId) {
+        Optional<Vendedores> optionalVendedor = repository.findByUsuarioId(userId);
+        if (optionalVendedor.isPresent()) {
+            return ResponseEntity.ok(new VendedoresResponseDTO(optionalVendedor.get()));
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
     // POST: Criar um novo vendedor
     @PostMapping
     public ResponseEntity<VendedoresResponseDTO> createVendedor(@RequestBody VendedoresRequestDTO requestDTO) {
