@@ -10,6 +10,7 @@ import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,7 +34,7 @@ public class PedidosService {
 
     // Método para listar todos os pedidos
     public List<Pedidos> listarTodos() {
-        return pedidosRepository.findAll();
+        return pedidosRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     // Método para buscar um pedido pelo ID
@@ -96,6 +97,18 @@ public class PedidosService {
             return true;
         }
         return false;
+    }
+
+    public List<Pedidos> getPedidosEmAberto() {
+        return pedidosRepository.findByStatusOrderByIdDesc("em_aberto");
+    }
+
+    public Optional<Pedidos> atualizarStatus(Long id, String novoStatus) {
+        return pedidosRepository.findById(id).map(pedido -> {
+            pedido.setStatus(novoStatus);
+            pedido.setUltimaAtualizacao(LocalDateTime.now());  // Atualiza a data de última atualização
+            return pedidosRepository.save(pedido);  // Salva o pedido com o novo status
+        });
     }
 }
 

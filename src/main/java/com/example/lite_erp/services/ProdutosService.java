@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import com.example.lite_erp.entities.produtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class ProdutosService {
     private ProdutosRepository produtosRepository;
 
     public List<Produtos> listarTodos() {
-        return produtosRepository.findAll();
+        return produtosRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Optional<Produtos> buscarPorId(Long id) {

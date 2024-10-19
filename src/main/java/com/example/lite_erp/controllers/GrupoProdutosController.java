@@ -4,6 +4,7 @@ import com.example.lite_erp.entities.grupo_produto.GrupoProdutos;
 import com.example.lite_erp.entities.grupo_produto.GrupoProdutosRepository;
 import com.example.lite_erp.entities.grupo_produto.GrupoProdutosRequestDTO;
 import com.example.lite_erp.entities.grupo_produto.GrupoProdutosResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,11 +17,9 @@ import java.util.Optional;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class GrupoProdutosController {
 
-    private final GrupoProdutosRepository repository;
+    @Autowired
+    private GrupoProdutosRepository repository;
 
-    public GrupoProdutosController(GrupoProdutosRepository repository) {
-        this.repository = repository;
-    }
 
     // GET: Listar todos os grupos de produtos
     @GetMapping

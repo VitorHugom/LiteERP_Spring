@@ -6,6 +6,7 @@ import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class ClientesService {
     private ClientesRepository clientesRepository;
 
     public List<Clientes> listarTodos() {
-        return clientesRepository.findAll();
+        return clientesRepository.findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 
     public Optional<Clientes> buscarPorId(Long id) {

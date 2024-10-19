@@ -27,16 +27,14 @@ public class UsuarioController {
 
     private static final Logger logger = LoggerFactory.getLogger(UsuarioController.class);
 
-    private final UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
     @Autowired
     private VendedoresRepository vendedoresRepository;
 
     @Autowired
     private UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
-    }
 
     @GetMapping
     public ResponseEntity<List<UsuarioResponseDTO>> getUser() {

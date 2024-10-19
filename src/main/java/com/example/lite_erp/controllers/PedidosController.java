@@ -4,6 +4,7 @@ import com.example.lite_erp.entities.itens_pedido.ItensPedido;
 import com.example.lite_erp.entities.itens_pedido.ItensPedidoRequestDTO;
 import com.example.lite_erp.entities.itens_pedido.ItensPedidoResponseDTO;
 import com.example.lite_erp.entities.pedidos.Pedidos;
+import com.example.lite_erp.entities.pedidos.PedidosAtualizarStatusRequestDTO;
 import com.example.lite_erp.entities.pedidos.PedidosRequestDTO;
 import com.example.lite_erp.entities.pedidos.PedidosResponseDTO;
 import com.example.lite_erp.services.ItensPedidoService;
@@ -66,6 +67,19 @@ public class PedidosController {
     public List<ItensPedidoResponseDTO> listarItensPorPedido(@PathVariable Long id) {
         List<ItensPedido> itens = itensPedidoService.listarItensPorPedido(id);
         return itens.stream().map(ItensPedidoResponseDTO::new).toList();
+    }
+
+    @GetMapping("/em-aberto")
+    public ResponseEntity<List<PedidosResponseDTO>> getPedidosEmAberto() {
+        List<Pedidos> pedidos = pedidosService.getPedidosEmAberto();
+        return ResponseEntity.ok(pedidos.stream().map(PedidosResponseDTO::new).toList());
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<PedidosResponseDTO> atualizarStatus(@PathVariable Long id, @RequestBody PedidosAtualizarStatusRequestDTO dto) {
+        Optional<Pedidos> pedidoAtualizado = pedidosService.atualizarStatus(id, dto.status());
+        return pedidoAtualizado.map(value -> ResponseEntity.ok(new PedidosResponseDTO(value)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{id}/itens")

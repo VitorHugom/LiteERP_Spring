@@ -3,6 +3,7 @@ package com.example.lite_erp.controllers;
 import com.example.lite_erp.entities.cidades.Cidades;
 import com.example.lite_erp.entities.cidades.CidadesRepository;
 import com.example.lite_erp.entities.cidades.CidadesResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,11 +20,8 @@ import java.util.Optional;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class CidadesController {
 
-    private final CidadesRepository repository;
-
-    public CidadesController(CidadesRepository repository) {
-        this.repository = repository;
-    }
+    @Autowired
+    private CidadesRepository repository;
 
     // GET: Listar cidades com lazy loading (autocomplete)
     @GetMapping("/search")

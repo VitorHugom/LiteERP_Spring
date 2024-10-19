@@ -4,6 +4,7 @@ import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import com.example.lite_erp.entities.vendedores.VendedoresRequestDTO;
 import com.example.lite_erp.entities.vendedores.VendedoresResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +21,8 @@ import java.util.Optional;
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class VendedoresController {
 
-    private final VendedoresRepository repository;
-
-    public VendedoresController(VendedoresRepository repository) {
-        this.repository = repository;
-    }
+    @Autowired
+    private VendedoresRepository repository;
 
     // GET: Retornar todos os vendedores
     @GetMapping
