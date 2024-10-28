@@ -1,6 +1,7 @@
 package com.example.lite_erp.controllers;
 
 import com.example.lite_erp.entities.clientes.Clientes;
+import com.example.lite_erp.entities.clientes.ClientesBuscaResponseDTO;
 import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
 import com.example.lite_erp.entities.clientes.ClientesResponseDTO;
 import com.example.lite_erp.services.ClientesService;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -79,5 +81,32 @@ public class ClientesController {
                 .toList();
 
         return ResponseEntity.ok(clientesDTO);
+    }
+
+    @GetMapping("/busca")
+    public Page<ClientesBuscaResponseDTO> buscarClientes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return clientesService.buscarClientes(pageRequest);
+    }
+
+    @GetMapping("/busca-por-razao-social")
+    public ResponseEntity<Page<ClientesBuscaResponseDTO>> buscarClientesPorRazaoSocial(
+            @RequestParam String razaoSocial,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ClientesBuscaResponseDTO> clientes = clientesService.buscarClientesPorRazaoSocial(razaoSocial, pageable);
+        return ResponseEntity.ok(clientes);
+    }
+
+    @GetMapping("/busca/{id}")
+    public ResponseEntity<ClientesBuscaResponseDTO> simplesBuscaPorId(@PathVariable Long id) {
+        return clientesService.simplesBuscaPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 }

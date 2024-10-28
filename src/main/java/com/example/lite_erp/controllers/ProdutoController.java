@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -77,5 +78,32 @@ public class ProdutoController {
                 .toList();
 
         return ResponseEntity.ok(produtosDTO);
+    }
+
+    @GetMapping("/busca")
+    public Page<ProdutosBuscaResponseDTO> buscarProdutos(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return produtosService.buscarProdutos(pageRequest);
+    }
+
+    @GetMapping("/busca-por-descricao")
+    public ResponseEntity<Page<ProdutosBuscaResponseDTO>> buscarProdutosPorDescricao(
+            @RequestParam String descricao,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProdutosBuscaResponseDTO> pedidos = produtosService.buscarProdutosPorDescricao(descricao, pageable);
+        return ResponseEntity.ok(pedidos);
+    }
+
+    @GetMapping("/busca/{id}")
+    public ResponseEntity<ProdutosBuscaResponseDTO> simplesBuscaPorId(@PathVariable Long id) {
+        return produtosService.simplesBuscaPorId(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 }

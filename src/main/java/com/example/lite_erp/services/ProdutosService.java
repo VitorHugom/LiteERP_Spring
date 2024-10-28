@@ -24,6 +24,15 @@ public class ProdutosService {
         return produtosRepository.findById(id);
     }
 
+    public Optional<ProdutosBuscaResponseDTO> simplesBuscaPorId(Long id) {
+        return produtosRepository.findById(id)
+                .map(produto -> new ProdutosBuscaResponseDTO(
+                        produto.getId(),
+                        produto.getDescricao(),
+                        produto.getPrecoVenda()
+                ));
+    }
+
     public Produtos criarProduto(ProdutosRequestDTO dto) {
         Produtos produto = new Produtos(
                 null,
@@ -73,5 +82,13 @@ public class ProdutosService {
     // Listar todos com paginação
     public Page<Produtos> listarTodosPaginado(Pageable pageable) {
         return produtosRepository.findAll(pageable);
+    }
+
+    public Page<ProdutosBuscaResponseDTO> buscarProdutos(Pageable pageable) {
+        return produtosRepository.findProdutosForBusca(pageable);
+    }
+
+    public Page<ProdutosBuscaResponseDTO> buscarProdutosPorDescricao(String descricao, Pageable pageable) {
+        return produtosRepository.findProdutosForBuscaByDescricao(descricao + "%", pageable);
     }
 }

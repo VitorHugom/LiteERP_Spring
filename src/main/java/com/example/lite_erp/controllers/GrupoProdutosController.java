@@ -5,6 +5,9 @@ import com.example.lite_erp.entities.grupo_produto.GrupoProdutosRepository;
 import com.example.lite_erp.entities.grupo_produto.GrupoProdutosRequestDTO;
 import com.example.lite_erp.entities.grupo_produto.GrupoProdutosResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +38,25 @@ public class GrupoProdutosController {
             return ResponseEntity.ok(new GrupoProdutosResponseDTO(optionalGrupo.get()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    }
+
+    // Busca todos os grupos de produtos com paginação
+    @GetMapping("/busca")
+    public Page<GrupoProdutosResponseDTO> findAll(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repository.findAll(pageable).map(GrupoProdutosResponseDTO::new);
+    }
+
+    // Busca paginada por nome (contém, ignorando maiúsculas e minúsculas)
+    @GetMapping("/busca-por-descricao")
+    public Page<GrupoProdutosResponseDTO> findByNomeContainingIgnoreCase(
+            @RequestParam String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return repository.findByNomeContainingIgnoreCase(nome, pageable);
     }
 
     // POST: Criar um novo grupo de produtos
