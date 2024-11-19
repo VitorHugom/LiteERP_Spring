@@ -4,6 +4,6 @@ import java.math.BigDecimal;
 
 public record ItensPedidoResponseDTO(Long id, Long idPedido, Long idProduto, BigDecimal preco, Integer quantidade) {
     public ItensPedidoResponseDTO(ItensPedido itensPedido){
-        this(itensPedido.getId(), itensPedido.getIdPedido(), itensPedido.getIdProduto(), itensPedido.getPreco(), itensPedido.getQuantidade());
+        this(itensPedido.getId(), itensPedido.getPedido().getId(), itensPedido.getProduto().getId(), itensPedido.getPreco(), itensPedido.getQuantidade());
     };
 }

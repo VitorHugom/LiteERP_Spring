@@ -1,6 +1,5 @@
-package com.example.lite_erp.entities.itens_pedido;
+package com.example.lite_erp.entities.estoque;
 
-import com.example.lite_erp.entities.pedidos.Pedidos;
 import com.example.lite_erp.entities.produtos.Produtos;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -15,21 +14,16 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "itens_pedido")
-public class ItensPedido {
+@Table(name = "estoque")
+public class Estoque {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_pedido")
-    private Pedidos pedido;
-
-    @ManyToOne
-    @JoinColumn(name = "id_produto")
+    @OneToOne
+    @JoinColumn(name = "id_produto", nullable = false, unique = true)
     private Produtos produto;
 
-    private BigDecimal preco;
-
-    private Integer quantidade;
+    @Column(name = "qtd_estoque", precision = 10, scale = 4)
+    private BigDecimal qtdEstoque = BigDecimal.ZERO;
 }
