@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 
 public interface MovimentoEstoqueRepository extends JpaRepository <MovimentoEstoque, Long> {
-    @Query("SELECT m FROM MovimentoEstoque m WHERE m.dataMovimentacao BETWEEN :startDate AND :endDate")
+    @Query("SELECT m FROM MovimentoEstoque m WHERE m.dataMovimentacao BETWEEN :startDate AND :endDate ORDER BY m.dataMovimentacao DESC")
     Page<MovimentoEstoque> findByDataMovimentacaoBetween(
             @Param("startDate") LocalDateTime startDate,
             @Param("endDate") LocalDateTime endDate,

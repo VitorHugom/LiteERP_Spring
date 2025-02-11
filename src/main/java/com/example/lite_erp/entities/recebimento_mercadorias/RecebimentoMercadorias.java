@@ -1,6 +1,7 @@
 package com.example.lite_erp.entities.recebimento_mercadorias;
 
 
+import com.example.lite_erp.entities.forma_pagamento.FormaPagamento;
 import com.example.lite_erp.entities.fornecedores.Fornecedores;
 import com.example.lite_erp.entities.itens_recebimento_mercadorias.ItensRecebimentoMercadorias;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
@@ -39,5 +40,9 @@ public class RecebimentoMercadorias {
 
     @OneToMany(mappedBy = "recebimento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItensRecebimentoMercadorias> itens = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_forma_pagamento", nullable = false)
+    private FormaPagamento formaPagamento;
 
 }

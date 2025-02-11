@@ -21,7 +21,7 @@ public interface ClientesRepository extends JpaRepository <Clientes, Long> {
             "c.id, c.razaoSocial, v.nome) " +
             "FROM Clientes c " +
             "JOIN c.vendedor v " +
-            "WHERE LOWER(c.razaoSocial) LIKE LOWER(:razaoSocial) " +
+            "WHERE LOWER(c.razaoSocial) LIKE LOWER(CONCAT('%', :razaoSocial, '%')) " +
             "ORDER BY c.id DESC")
     Page<ClientesBuscaResponseDTO> findClientesForBuscaByRazaoSocial(@Param("razaoSocial") String razaoSocial, Pageable pageable);
 }

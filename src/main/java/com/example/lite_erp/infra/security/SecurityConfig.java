@@ -46,6 +46,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers(
+                                "/v3/api-docs/**",  // Documentação JSON do OpenAPI
+                                "/swagger-ui/**",   // UI do Swagger
+                                "/swagger-ui.html"  // Página principal do Swagger
+                        ).permitAll()
                         .requestMatchers("/usuario/**").hasRole("GERENCIAL")
                         .anyRequest().authenticated())
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
@@ -56,7 +61,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://192.168.78.172:4200", "http://localhost:4200"));
+        configuration.setAllowedOrigins(Arrays.asList("https://lite-erp-enterprise.com", "http://localhost:4200"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);

@@ -104,13 +104,13 @@ public class ClientesService {
     }
 
     // Listar todos os clientes de forma paginada
-    public Page<Clientes> listarTodosPaginado(Pageable pageable) {
-        return clientesRepository.findAll(pageable);
+    public Page<ClientesBuscaResponseDTO> listarTodosPaginado(Pageable pageable) {
+        return clientesRepository.findAll(pageable).map(ClientesBuscaResponseDTO::new);
     }
 
     // Busca paginada por nome
-    public Page<Clientes> findByNomeContainingIgnoreCase(String nome, Pageable pageable) {
-        return clientesRepository.findByRazaoSocialContainingIgnoreCase(nome, pageable);
+    public Page<ClientesBuscaResponseDTO> findByNomeContainingIgnoreCase(String nome, Pageable pageable) {
+        return clientesRepository.findClientesForBuscaByRazaoSocial(nome, pageable);
     }
 
     public Page<ClientesBuscaResponseDTO> buscarClientes(Pageable pageable) {

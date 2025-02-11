@@ -60,13 +60,13 @@ public class ClientesController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<ClientesResponseDTO>> getClientesByName(
+    public ResponseEntity<List<ClientesBuscaResponseDTO>> getClientesByName(
             @RequestParam(required = false) String nome,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("razaoSocial").ascending());
-        Page<Clientes> clientesPage;
+        Page<ClientesBuscaResponseDTO> clientesPage;
 
         if (nome != null && !nome.isEmpty()) {
             clientesPage = clientesService.findByNomeContainingIgnoreCase(nome, pageable);
@@ -74,10 +74,9 @@ public class ClientesController {
             clientesPage = clientesService.listarTodosPaginado(pageable);
         }
 
-        List<ClientesResponseDTO> clientesDTO = clientesPage
+        List<ClientesBuscaResponseDTO> clientesDTO = clientesPage
                 .getContent()
                 .stream()
-                .map(ClientesResponseDTO::new)
                 .toList();
 
         return ResponseEntity.ok(clientesDTO);
