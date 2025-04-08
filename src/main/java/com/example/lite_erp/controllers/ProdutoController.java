@@ -56,7 +56,7 @@ public class ProdutoController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping("/search")
+    /*@GetMapping("/search")
     public ResponseEntity<List<ProdutosResponseDTO>> getProdutosByName(
             @RequestParam(required = false) String nome,
             @RequestParam(defaultValue = "0") int page,
@@ -78,7 +78,7 @@ public class ProdutoController {
                 .toList();
 
         return ResponseEntity.ok(produtosDTO);
-    }
+    }*/
 
     @GetMapping("/busca")
     public Page<ProdutosBuscaResponseDTO> buscarProdutos(
@@ -105,5 +105,16 @@ public class ProdutoController {
         return produtosService.simplesBuscaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<ProdutosBuscaResponseDTO>> buscarProdutosPorDescricaoCodEan(
+            @RequestParam String nome,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ProdutosBuscaResponseDTO> pedidos = produtosService.buscarProdutosPorDescricaoCodEan(nome, pageable);
+        return ResponseEntity.ok(pedidos);
     }
 }

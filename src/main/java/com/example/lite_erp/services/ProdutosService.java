@@ -91,4 +91,8 @@ public class ProdutosService {
     public Page<ProdutosBuscaResponseDTO> buscarProdutosPorDescricao(String descricao, Pageable pageable) {
         return produtosRepository.findProdutosForBuscaByDescricao(descricao + "%", pageable);
     }
+
+    public Page<ProdutosBuscaResponseDTO> buscarProdutosPorDescricaoCodEan(String busca, Pageable pageable){
+        return produtosRepository.findProdutosForBuscaByDescricaoCodEan(busca+"%", pageable);
+    }
 }
