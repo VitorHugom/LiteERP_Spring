@@ -56,7 +56,7 @@ public class ProdutoController {
         return ResponseEntity.notFound().build();
     }
 
-    /*@GetMapping("/search")
+    @GetMapping("/search")
     public ResponseEntity<List<ProdutosResponseDTO>> getProdutosByName(
             @RequestParam(required = false) String nome,
             @RequestParam(defaultValue = "0") int page,
@@ -78,7 +78,7 @@ public class ProdutoController {
                 .toList();
 
         return ResponseEntity.ok(produtosDTO);
-    }*/
+    }
 
     @GetMapping("/busca")
     public Page<ProdutosBuscaResponseDTO> buscarProdutos(
@@ -107,7 +107,7 @@ public class ProdutoController {
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    @GetMapping("/search")
+    @GetMapping("/busca-por-descricao-cod-ean")
     public ResponseEntity<Page<ProdutosBuscaResponseDTO>> buscarProdutosPorDescricaoCodEan(
             @RequestParam String nome,
             @RequestParam(defaultValue = "0") int page,
