@@ -7,8 +7,8 @@ import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record ContasReceberResponseDTO(Integer id, Clientes cliente, String numeroDocumento, Integer parcela, BigDecimal valorParcela, BigDecimal valorTotal, FormaPagamento formaPagamento, TiposCobranca tipoCobranca, LocalDate dataVencimento) {
-    ContasReceberResponseDTO(ContasReceber contasReceber){
+public record ContasReceberResponseDTO(Integer id, Clientes cliente, String numeroDocumento, Integer parcela, BigDecimal valorParcela, BigDecimal valorTotal, FormaPagamento formaPagamento, TiposCobranca tipoCobranca, LocalDate dataVencimento, String status) {
+    public ContasReceberResponseDTO(ContasReceber contasReceber){
         this(
                 contasReceber.id,
                 contasReceber.cliente,
@@ -18,7 +18,8 @@ public record ContasReceberResponseDTO(Integer id, Clientes cliente, String nume
                 contasReceber.valorTotal,
                 contasReceber.formaPagamento,
                 contasReceber.tiposCobranca,
-                contasReceber.dataVencimento
+                contasReceber.dataVencimento,
+                contasReceber.getStatus()
         );
     }
 }

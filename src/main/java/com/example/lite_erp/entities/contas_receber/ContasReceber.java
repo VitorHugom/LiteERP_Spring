@@ -17,6 +17,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Setter
+@Table(name = "contas_receber")
 public class ContasReceber {
 
     @Id
@@ -48,4 +49,6 @@ public class ContasReceber {
 
     @Column(name = "data_vencimento")
     LocalDate dataVencimento;
+
+    private String status;
 }
