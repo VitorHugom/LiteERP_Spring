@@ -1,15 +1,13 @@
 package com.example.lite_erp.services;
 
-import com.example.lite_erp.entities.clientes.Clientes;
-import com.example.lite_erp.entities.clientes.ClientesBuscaResponseDTO;
-import com.example.lite_erp.entities.clientes.ClientesRepository;
-import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
+import com.example.lite_erp.entities.clientes.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -119,5 +117,19 @@ public class ClientesService {
 
     public Page<ClientesBuscaResponseDTO> buscarClientesPorRazaoSocial(String razaoSocial, Pageable pageable) {
         return clientesRepository.findClientesForBuscaByRazaoSocial(razaoSocial + "%", pageable);
+    }
+
+    public List<ClientesBuscaResponseDTO> filtrarClientes(ClientesFiltroDTO filtro) {
+        LocalDate inicio     = filtro.dataNascimentoInicial();
+        LocalDate fim        = filtro.dataNascimentoFinal();
+        Long vendedorId      = filtro.vendedorId();
+        Long cidadeId        = filtro.cidadeId();
+
+        return clientesRepository.filterClientes(
+                inicio,
+                fim,
+                vendedorId,
+                cidadeId
+        );
     }
 }

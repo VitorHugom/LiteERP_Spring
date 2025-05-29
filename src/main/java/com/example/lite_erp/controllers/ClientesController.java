@@ -1,9 +1,6 @@
 package com.example.lite_erp.controllers;
 
-import com.example.lite_erp.entities.clientes.Clientes;
-import com.example.lite_erp.entities.clientes.ClientesBuscaResponseDTO;
-import com.example.lite_erp.entities.clientes.ClientesRequestDTO;
-import com.example.lite_erp.entities.clientes.ClientesResponseDTO;
+import com.example.lite_erp.entities.clientes.*;
 import com.example.lite_erp.services.ClientesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -107,5 +104,13 @@ public class ClientesController {
         return clientesService.simplesBuscaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @PostMapping("/relatorio")
+    public ResponseEntity<List<ClientesBuscaResponseDTO>> relatorioClientes(
+            @RequestBody ClientesFiltroDTO filtro
+    ) {
+        List<ClientesBuscaResponseDTO> resultado = clientesService.filtrarClientes(filtro);
+        return ResponseEntity.ok(resultado);
     }
 }
