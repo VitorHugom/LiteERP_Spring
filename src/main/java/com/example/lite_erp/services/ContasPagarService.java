@@ -1,9 +1,6 @@
 package com.example.lite_erp.services;
 
-import com.example.lite_erp.entities.contas_pagar.ContasPagar;
-import com.example.lite_erp.entities.contas_pagar.ContasPagarRepository;
-import com.example.lite_erp.entities.contas_pagar.ContasPagarRequestDTO;
-import com.example.lite_erp.entities.contas_pagar.ContasPagarResponseDTO;
+import com.example.lite_erp.entities.contas_pagar.*;
 import com.example.lite_erp.entities.forma_pagamento.FormaPagamentoRepository;
 import com.example.lite_erp.entities.fornecedores.FornecedoresRepository;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
@@ -14,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ContasPagarService {
@@ -119,5 +117,20 @@ public class ContasPagarService {
         }
 
         contasPagarRepository.deleteById(id);
+    }
+
+    public List<ContasPagarResponseDTO> filtrarContasPagar(ContasPagarFiltroDTO filtro) {
+        List<ContasPagar> lista = contasPagarRepository.filterContasPagar(
+                filtro.dataVencimentoInicio(),
+                filtro.dataVencimentoFim(),
+                filtro.idFornecedor(),
+                filtro.idTipoCobranca(),
+                filtro.idFormaPagamento(),
+                filtro.valorTotalInicial(),
+                filtro.valorTotalFinal()
+        );
+        return lista.stream()
+                .map(ContasPagarResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
