@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
@@ -27,4 +29,27 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
             "WHERE LOWER(c.razaoSocial) LIKE LOWER(:razaoSocial) " +
             "ORDER BY p.dataEmissao DESC")
     Page<PedidosBuscaResponseDTO> findPedidosForBuscaByClienteRazaoSocial(@Param("razaoSocial") String razaoSocial, Pageable pageable);
+
+    @Query("""
+        SELECT p 
+        FROM Pedidos p
+        JOIN p.cliente c
+        JOIN p.vendedor v
+        JOIN p.tipoCobranca t
+        WHERE c.id       = COALESCE(:idCliente,      c.id)
+          AND v.id       = COALESCE(:idVendedor,     v.id)
+          AND p.dataEmissao = COALESCE(:dataEmissao, p.dataEmissao)
+          AND p.valorTotal  = COALESCE(:valorTotal,  p.valorTotal)
+          AND LOWER(p.status) = LOWER(COALESCE(:status, p.status))
+          AND t.id       = COALESCE(:idTipoCobranca, t.id)
+        ORDER BY p.dataEmissao DESC
+    """)
+    List<Pedidos> filterPedidos(
+            @Param("idCliente")      Long idCliente,
+            @Param("idVendedor")     Long idVendedor,
+            @Param("dataEmissao")    LocalDateTime dataEmissao,
+            @Param("valorTotal")     BigDecimal valorTotal,
+            @Param("status")         String status,
+            @Param("idTipoCobranca") Long idTipoCobranca
+    );
 }

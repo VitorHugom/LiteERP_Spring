@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/pedidos")
@@ -131,5 +132,11 @@ public class PedidosController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<PedidosResponseDTO>> gerarRelatorio(@RequestBody PedidosFiltroDTO filtros) {
+        List<PedidosResponseDTO> dtos = pedidosService.filtrarPedidos(filtros);
+        return ResponseEntity.ok(dtos);
     }
 }

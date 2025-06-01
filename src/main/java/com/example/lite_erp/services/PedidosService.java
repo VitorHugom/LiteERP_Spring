@@ -2,10 +2,7 @@ package com.example.lite_erp.services;
 
 import com.example.lite_erp.entities.clientes.Clientes;
 import com.example.lite_erp.entities.clientes.ClientesRepository;
-import com.example.lite_erp.entities.pedidos.Pedidos;
-import com.example.lite_erp.entities.pedidos.PedidosBuscaResponseDTO;
-import com.example.lite_erp.entities.pedidos.PedidosRepository;
-import com.example.lite_erp.entities.pedidos.PedidosRequestDTO;
+import com.example.lite_erp.entities.pedidos.*;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import com.example.lite_erp.entities.vendedores.Vendedores;
@@ -19,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PedidosService {
@@ -131,6 +129,20 @@ public class PedidosService {
 
     public Page<PedidosBuscaResponseDTO> buscarPedidosPorRazaoSocial(String razaoSocial, Pageable pageable) {
         return pedidosRepository.findPedidosForBuscaByClienteRazaoSocial(razaoSocial + "%", pageable);
+    }
+
+    public List<PedidosResponseDTO> filtrarPedidos(PedidosFiltroDTO filtro) {
+        List<Pedidos> lista = pedidosRepository.filterPedidos(
+                filtro.idCliente(),
+                filtro.idVendedor(),
+                filtro.dataEmissao(),
+                filtro.valorTotal(),
+                filtro.status(),
+                filtro.idTipoCobranca()
+        );
+        return lista.stream()
+                .map(PedidosResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
 
