@@ -1,11 +1,13 @@
 package com.example.lite_erp.controllers;
 
+import com.example.lite_erp.entities.contas_receber.ContasReceberFiltroDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberRequestDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberResponseDTO;
 import com.example.lite_erp.services.ContasReceberService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -52,5 +54,13 @@ public class ContasReceberController {
     @DeleteMapping("/{id}")
     public void excluirContaReceber(@PathVariable Integer id) {
         contasReceberService.excluirContaReceber(id);
+    }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<ContasReceberResponseDTO>> gerarRelatorioContasReceber(
+            @RequestBody ContasReceberFiltroDTO filtros
+    ) {
+        List<ContasReceberResponseDTO> dtos = contasReceberService.filtrarContasReceber(filtros);
+        return ResponseEntity.ok(dtos);
     }
 }

@@ -1,9 +1,6 @@
 package com.example.lite_erp.services;
 
-import com.example.lite_erp.entities.contas_receber.ContasReceber;
-import com.example.lite_erp.entities.contas_receber.ContasReceberRepository;
-import com.example.lite_erp.entities.contas_receber.ContasReceberRequestDTO;
-import com.example.lite_erp.entities.contas_receber.ContasReceberResponseDTO;
+import com.example.lite_erp.entities.contas_receber.*;
 import com.example.lite_erp.entities.clientes.ClientesRepository;
 import com.example.lite_erp.entities.forma_pagamento.FormaPagamentoRepository;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
@@ -14,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ContasReceberService {
@@ -106,5 +104,20 @@ public class ContasReceberService {
             throw new RuntimeException("Conta a receber não encontrada.");
         }
         contasReceberRepository.deleteById(id);
+    }
+
+    public List<ContasReceberResponseDTO> filtrarContasReceber(ContasReceberFiltroDTO filtro) {
+        List<ContasReceber> lista = contasReceberRepository.filterContasReceber(
+                filtro.dataRecebimentoInicio(),
+                filtro.dataRecebimentoFim(),
+                filtro.idCliente(),
+                filtro.idTipoCobranca(),
+                filtro.idFormaPagamento(),
+                filtro.valorTotalInicial(),
+                filtro.valorTotalFinal()
+        );
+        return lista.stream()
+                .map(ContasReceberResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
