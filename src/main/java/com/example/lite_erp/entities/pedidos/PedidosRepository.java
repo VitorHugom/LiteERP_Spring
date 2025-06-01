@@ -38,7 +38,8 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
         JOIN p.tipoCobranca t
         WHERE c.id       = COALESCE(:idCliente,      c.id)
           AND v.id       = COALESCE(:idVendedor,     v.id)
-          AND p.dataEmissao = COALESCE(:dataEmissao, p.dataEmissao)
+          AND p.dataEmissao >= COALESCE(:dataInicio, p.dataEmissao)
+          AND p.dataEmissao <= COALESCE(:dataFim,    p.dataEmissao)
           AND p.valorTotal  = COALESCE(:valorTotal,  p.valorTotal)
           AND LOWER(p.status) = LOWER(COALESCE(:status, p.status))
           AND t.id       = COALESCE(:idTipoCobranca, t.id)
@@ -47,7 +48,8 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
     List<Pedidos> filterPedidos(
             @Param("idCliente")      Long idCliente,
             @Param("idVendedor")     Long idVendedor,
-            @Param("dataEmissao")    LocalDateTime dataEmissao,
+            @Param("dataInicio")     LocalDateTime dataInicio,
+            @Param("dataFim")        LocalDateTime dataFim,
             @Param("valorTotal")     BigDecimal valorTotal,
             @Param("status")         String status,
             @Param("idTipoCobranca") Long idTipoCobranca
