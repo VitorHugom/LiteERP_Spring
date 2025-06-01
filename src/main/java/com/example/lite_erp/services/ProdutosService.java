@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProdutosService {
@@ -94,5 +95,33 @@ public class ProdutosService {
 
     public Page<ProdutosBuscaResponseDTO> buscarProdutosPorDescricaoCodEan(String busca, Pageable pageable){
         return produtosRepository.findProdutosForBuscaByDescricaoCodEan(busca+"%", pageable);
+    }
+
+    public List<ProdutosResponseDTO> filtrarProdutos(ProdutosFiltroDTO filtro) {
+        var dataInicio         = filtro.dataCompraInicio();
+        var dataFim            = filtro.dataCompraFim();
+        var grupoId            = filtro.grupoId();
+        var precoVendaInicio   = filtro.precoVendaInicio();
+        var precoVendaFim      = filtro.precoVendaFim();
+        var precoCompraInicio  = filtro.precoCompraInicio();
+        var precoCompraFim     = filtro.precoCompraFim();
+        var pesoInicio         = filtro.pesoInicio();
+        var pesoFim            = filtro.pesoFim();
+
+        List<Produtos> lista = produtosRepository.filterProdutos(
+                dataInicio,
+                dataFim,
+                grupoId,
+                precoVendaInicio,
+                precoVendaFim,
+                precoCompraInicio,
+                precoCompraFim,
+                pesoInicio,
+                pesoFim
+        );
+
+        return lista.stream()
+                .map(ProdutosResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }

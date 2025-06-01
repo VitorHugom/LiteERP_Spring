@@ -117,4 +117,12 @@ public class ProdutoController {
         Page<ProdutosBuscaResponseDTO> pedidos = produtosService.buscarProdutosPorDescricaoCodEan(nome, pageable);
         return ResponseEntity.ok(pedidos);
     }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<ProdutosResponseDTO>> gerarRelatorioProdutos(
+            @RequestBody ProdutosFiltroDTO filtros
+    ) {
+        List<ProdutosResponseDTO> dtos = produtosService.filtrarProdutos(filtros);
+        return ResponseEntity.ok(dtos);
+    }
 }
