@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -145,12 +146,16 @@ public class PedidosService {
                 ? dataFim.atTime(LocalTime.MAX)
                 : null;
 
+        BigDecimal totalInicial = filtro.valorTotalInical();
+        BigDecimal totalFinal   = filtro.valorTotalFinal();
+
         List<Pedidos> lista = pedidosRepository.filterPedidos(
                 filtro.idCliente(),
                 filtro.idVendedor(),
                 dtInicio,
                 dtFim,
-                filtro.valorTotal(),
+                totalInicial,
+                totalFinal,
                 filtro.status(),
                 filtro.idTipoCobranca()
         );

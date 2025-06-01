@@ -8,7 +8,8 @@ public record PedidosFiltroDTO(
         Long idVendedor,
         LocalDate dataEmissaoInicio,
         LocalDate dataEmissaoFim,
-        BigDecimal valorTotal,
+        BigDecimal valorTotalInical,
+        BigDecimal valorTotalFinal,
         String status,
         Long idTipoCobranca
 ) {

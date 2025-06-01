@@ -40,7 +40,8 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
           AND v.id       = COALESCE(:idVendedor,     v.id)
           AND p.dataEmissao >= COALESCE(:dataInicio, p.dataEmissao)
           AND p.dataEmissao <= COALESCE(:dataFim,    p.dataEmissao)
-          AND p.valorTotal  = COALESCE(:valorTotal,  p.valorTotal)
+          AND p.valorTotal >= COALESCE(:valorInicial, p.valorTotal)
+          AND p.valorTotal <= COALESCE(:valorFinal,   p.valorTotal)
           AND LOWER(p.status) = LOWER(COALESCE(:status, p.status))
           AND t.id       = COALESCE(:idTipoCobranca, t.id)
         ORDER BY p.dataEmissao DESC
@@ -50,7 +51,8 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
             @Param("idVendedor")     Long idVendedor,
             @Param("dataInicio")     LocalDateTime dataInicio,
             @Param("dataFim")        LocalDateTime dataFim,
-            @Param("valorTotal")     BigDecimal valorTotal,
+            @Param("valorInicial")   BigDecimal valorInicial,
+            @Param("valorFinal")     BigDecimal valorFinal,
             @Param("status")         String status,
             @Param("idTipoCobranca") Long idTipoCobranca
     );
