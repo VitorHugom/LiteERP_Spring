@@ -1,8 +1,6 @@
 package com.example.lite_erp.controllers;
 
-import com.example.lite_erp.entities.usuario.Usuario;
-import com.example.lite_erp.entities.usuario.UsuarioRepository;
-import com.example.lite_erp.entities.usuario.UsuarioResponseDTO;
+import com.example.lite_erp.entities.usuario.*;
 import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import com.example.lite_erp.services.UsuarioService;
@@ -116,5 +114,19 @@ public class UsuarioController {
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
+    }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<UsuarioResponseDTO>> gerarRelatorioUsuarios(
+            @RequestBody UsuarioFiltroDTO filtros
+    ) {
+        List<UsuarioResponseDTO> dtos = usuarioService.filtrarUsuarios(filtros);
+        return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/categorias")
+    public ResponseEntity<List<CategoriasResponseDTO>> getCategoriasUsuario() {
+        List<CategoriasResponseDTO> categoriasDTO = usuarioService.listarCategorias();
+        return ResponseEntity.ok(categoriasDTO);
     }
 }
