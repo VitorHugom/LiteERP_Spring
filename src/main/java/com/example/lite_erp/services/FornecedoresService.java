@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -108,5 +109,20 @@ public class FornecedoresService {
 
     public Page<FornecedoresBuscaResponseDTO> buscarFornecedoresPorRazaoSocial(String razaoSocial, Pageable pageable) {
         return fornecedoresRepository.findFornecedoresForBuscaByRazaoSocial(razaoSocial + "%", pageable);
+    }
+
+    public List<FornecedoresResponseDTO> filtrarFornecedores(FornecedoresFiltroDTO filtro) {
+        LocalDate inicio  = filtro.dataCadastroInicial();
+        LocalDate fim     = filtro.dataCadastroFinal();
+        Integer cidadeId  = filtro.cidadeId();
+
+        // 1) busca as entidades completas
+        List<Fornecedores> listaEntidades = fornecedoresRepository
+                .filterFornecedoresEntities(inicio, fim, cidadeId);
+
+        // 2) converte cada entidade para o DTO que tem todos os campos
+        return listaEntidades.stream()
+                .map(FornecedoresResponseDTO::new)
+                .toList();
     }
 }

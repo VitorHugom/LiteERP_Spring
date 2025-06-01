@@ -106,4 +106,12 @@ public class FornecedoresController {
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<FornecedoresResponseDTO>> relatorioFornecedores(
+            @RequestBody FornecedoresFiltroDTO filtro
+    ) {
+        List<FornecedoresResponseDTO> resultado = fornecedoresService.filtrarFornecedores(filtro);
+        return ResponseEntity.ok(resultado);
+    }
 }
