@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/estoque")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
@@ -50,5 +52,13 @@ public class EstoqueController {
         Pageable pageable = PageRequest.of(page, size);
         Page<EstoqueResponseDTO> response = estoqueService.buscarProdutosNoEstoquePorDescricao(descricao, pageable);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/relatorios")
+    public ResponseEntity<List<EstoqueResponseDTO>> gerarRelatorioEstoque(
+            @RequestBody EstoqueFiltroDTO filtros
+    ) {
+        List<EstoqueResponseDTO> dtos = estoqueService.filtrarEstoque(filtros);
+        return ResponseEntity.ok(dtos);
     }
 }

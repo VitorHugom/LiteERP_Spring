@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EstoqueService {
@@ -51,5 +53,15 @@ public class EstoqueService {
         Estoque estoque = estoqueRepository.findByProdutoId(idProduto)
                 .orElseThrow(() -> new RuntimeException("Estoque não encontrado para o produto"));
         return new EstoqueResponseDTO(estoque);
+    }
+
+    public List<EstoqueResponseDTO> filtrarEstoque(EstoqueFiltroDTO filtro) {
+        Long grupoId = filtro.grupoId();
+
+        List<Estoque> lista = estoqueRepository.filterEstoque(grupoId);
+
+        return lista.stream()
+                .map(EstoqueResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
