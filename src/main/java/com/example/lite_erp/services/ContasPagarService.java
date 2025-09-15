@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -132,5 +133,35 @@ public class ContasPagarService {
         return lista.stream()
                 .map(ContasPagarResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ContasPagarRelatorioResponseDTO> gerarRelatorioContasPorData(
+            ContasPagarRelatorioFiltroDTO filtro,
+            Pageable pageable) {
+
+        String statusFiltro = filtro.status();
+
+        Page<ContasPagarRelatorioProjection> projections = contasPagarRepository.buscarRelatorioContasPorData(
+                statusFiltro,
+                filtro.dataInicio(),
+                filtro.dataFim(),
+                filtro.idFornecedor(),
+                filtro.idFormaPagamento(),
+                pageable
+        );
+
+        return projections.map(projection -> {
+            List<Long> idsParcelas = Arrays.stream(projection.getIdsParcelas().split(","))
+                    .map(String::trim)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList());
+
+            return new ContasPagarRelatorioResponseDTO(
+                    projection.getDataVencimento(),
+                    projection.getValorTotalParcelas(),
+                    projection.getQtdParcelas(),
+                    idsParcelas
+            );
+        });
     }
 }
