@@ -42,16 +42,8 @@ public class EstoqueService {
         Estoque estoque = estoqueRepository.findByProdutoId(dto.idProduto())
                 .orElseGet(() -> new Estoque(null, produto, BigDecimal.ZERO));
 
-        // Validar se a operação não resultará em estoque negativo
+        // Atualizar a quantidade em estoque (permitindo estoque negativo)
         BigDecimal novaQuantidade = estoque.getQtdEstoque().add(dto.qtdEstoque());
-        if (novaQuantidade.compareTo(BigDecimal.ZERO) < 0) {
-            throw ValidationException.estoqueInsuficiente(
-                produto.getDescricao(),
-                estoque.getQtdEstoque()
-            );
-        }
-
-        // Atualizar a quantidade em estoque
         estoque.setQtdEstoque(novaQuantidade);
         estoqueRepository.save(estoque);
 
