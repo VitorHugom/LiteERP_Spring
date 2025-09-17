@@ -27,9 +27,29 @@ public interface ContasReceberRepository extends JpaRepository<ContasReceber, In
             Pageable pageable);
 
     @Query("SELECT c FROM ContasReceber c WHERE " +
+            "(:razaoSocial IS NULL OR LOWER(c.cliente.razaoSocial) LIKE LOWER(CONCAT('%', :razaoSocial, '%'))) AND " +
+            "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
+            "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasReceber> buscarPorFiltroSomenteReceber(
+            @Param("razaoSocial") String razaoSocial,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasReceber c WHERE " +
             "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
             "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim)")
     Page<ContasReceber> buscarPorIntervaloDeDatas(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasReceber c WHERE " +
+            "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
+            "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasReceber> buscarPorIntervaloDeDatasSomenteReceber(
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim,
             Pageable pageable);
@@ -40,6 +60,19 @@ public interface ContasReceberRepository extends JpaRepository<ContasReceber, In
             "(:dataInicio IS NULL OR c.dataVencimento >= :dataInicio) AND " +
             "(:dataFim IS NULL OR c.dataVencimento <= :dataFim)")
     Page<ContasReceber> buscarPorClienteComFiltro(
+            @Param("idCliente") Integer idCliente,
+            @Param("razaoSocial") String razaoSocial,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasReceber c WHERE " +
+            "c.cliente.id = :idCliente AND " +
+            "(:razaoSocial IS NULL OR c.cliente.razaoSocial LIKE :razaoSocial) AND " +
+            "(:dataInicio IS NULL OR c.dataVencimento >= :dataInicio) AND " +
+            "(:dataFim IS NULL OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasReceber> buscarPorClienteComFiltroSomenteReceber(
             @Param("idCliente") Integer idCliente,
             @Param("razaoSocial") String razaoSocial,
             @Param("dataInicio") LocalDate dataInicio,

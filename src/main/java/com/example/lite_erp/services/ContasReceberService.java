@@ -66,6 +66,7 @@ public class ContasReceberService {
             LocalDate dataInicio,
             LocalDate dataFim,
             Integer idCliente,
+            Boolean somenteReceber,
             Pageable pageable) {
         Page<ContasReceber> contasReceber;
 
@@ -73,11 +74,23 @@ public class ContasReceberService {
             String razaoSocialParam = (razaoSocial != null && !razaoSocial.trim().isEmpty())
                     ? "%" + razaoSocial + "%"
                     : null;
-            contasReceber = contasReceberRepository.buscarPorClienteComFiltro(idCliente, razaoSocialParam, dataInicio, dataFim, pageable);
+            if (Boolean.TRUE.equals(somenteReceber)) {
+                contasReceber = contasReceberRepository.buscarPorClienteComFiltroSomenteReceber(idCliente, razaoSocialParam, dataInicio, dataFim, pageable);
+            } else {
+                contasReceber = contasReceberRepository.buscarPorClienteComFiltro(idCliente, razaoSocialParam, dataInicio, dataFim, pageable);
+            }
         } else if (razaoSocial == null || razaoSocial.trim().isEmpty()) {
-            contasReceber = contasReceberRepository.buscarPorIntervaloDeDatas(dataInicio, dataFim, pageable);
+            if (Boolean.TRUE.equals(somenteReceber)) {
+                contasReceber = contasReceberRepository.buscarPorIntervaloDeDatasSomenteReceber(dataInicio, dataFim, pageable);
+            } else {
+                contasReceber = contasReceberRepository.buscarPorIntervaloDeDatas(dataInicio, dataFim, pageable);
+            }
         } else {
-            contasReceber = contasReceberRepository.buscarPorFiltro(razaoSocial, dataInicio, dataFim, pageable);
+            if (Boolean.TRUE.equals(somenteReceber)) {
+                contasReceber = contasReceberRepository.buscarPorFiltroSomenteReceber(razaoSocial, dataInicio, dataFim, pageable);
+            } else {
+                contasReceber = contasReceberRepository.buscarPorFiltro(razaoSocial, dataInicio, dataFim, pageable);
+            }
         }
 
         return contasReceber.map(ContasReceberResponseDTO::new);
@@ -125,5 +138,19 @@ public class ContasReceberService {
         return lista.stream()
                 .map(ContasReceberResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public ContasReceberResponseDTO realizarRecebimento(Integer id) {
+        ContasReceber conta = contasReceberRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta a receber não encontrada."));
+
+        if ("paga".equals(conta.getStatus())) {
+            throw new RuntimeException("Esta conta já foi paga.");
+        }
+
+        conta.setStatus("paga");
+
+        ContasReceber contaAtualizada = contasReceberRepository.save(conta);
+        return new ContasReceberResponseDTO(contaAtualizada);
     }
 }

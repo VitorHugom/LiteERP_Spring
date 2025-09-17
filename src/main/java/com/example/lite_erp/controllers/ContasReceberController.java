@@ -72,6 +72,12 @@ public class ContasReceberController {
                             schema = @Schema(implementation = Integer.class)
                     ),
                     @Parameter(
+                            name = "somenteReceber",
+                            description = "Se true, retorna apenas contas com status 'aberta' (não pagas). Se false ou não informado, retorna todas as contas independente do status",
+                            example = "true",
+                            schema = @Schema(implementation = Boolean.class)
+                    ),
+                    @Parameter(
                             name = "page",
                             description = "Número da página",
                             example = "0",
@@ -104,8 +110,9 @@ public class ContasReceberController {
             @RequestParam(required = false) LocalDate dataInicio,
             @RequestParam(required = false) LocalDate dataFim,
             @RequestParam(required = false) Integer idCliente,
+            @RequestParam(required = false) Boolean somenteReceber,
             @Parameter(hidden = true) Pageable pageable) {
-        return contasReceberService.buscarContasReceberComFiltro(razaoSocial, dataInicio, dataFim, idCliente, pageable);
+        return contasReceberService.buscarContasReceberComFiltro(razaoSocial, dataInicio, dataFim, idCliente, somenteReceber, pageable);
     }
 
     @PutMapping("/{id}")
@@ -126,5 +133,36 @@ public class ContasReceberController {
     ) {
         List<ContasReceberResponseDTO> dtos = contasReceberService.filtrarContasReceber(filtros);
         return ResponseEntity.ok(dtos);
+    }
+
+    @Operation(
+            summary = "Realizar recebimento de conta a receber",
+            description = "Realiza o recebimento de uma conta a receber, alterando seu status de 'aberta' para 'paga'.",
+            tags = {"Contas a Receber"}
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Recebimento realizado com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ContasReceberResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Conta a receber não encontrada"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Conta já foi paga"
+            )
+    })
+    @PatchMapping("/{id}/receber")
+    public ResponseEntity<ContasReceberResponseDTO> realizarRecebimento(
+            @Parameter(description = "ID da conta a receber", example = "1")
+            @PathVariable Integer id) {
+        ContasReceberResponseDTO contaRecebida = contasReceberService.realizarRecebimento(id);
+        return ResponseEntity.ok(contaRecebida);
     }
 }
