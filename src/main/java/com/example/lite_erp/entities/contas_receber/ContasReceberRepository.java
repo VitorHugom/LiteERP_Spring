@@ -34,6 +34,18 @@ public interface ContasReceberRepository extends JpaRepository<ContasReceber, In
             @Param("dataFim") LocalDate dataFim,
             Pageable pageable);
 
+    @Query("SELECT c FROM ContasReceber c WHERE " +
+            "c.cliente.id = :idCliente AND " +
+            "(:razaoSocial IS NULL OR c.cliente.razaoSocial LIKE :razaoSocial) AND " +
+            "(:dataInicio IS NULL OR c.dataVencimento >= :dataInicio) AND " +
+            "(:dataFim IS NULL OR c.dataVencimento <= :dataFim)")
+    Page<ContasReceber> buscarPorClienteComFiltro(
+            @Param("idCliente") Integer idCliente,
+            @Param("razaoSocial") String razaoSocial,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
     @Query("""
         SELECT c
         FROM ContasReceber c

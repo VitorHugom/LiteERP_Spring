@@ -65,10 +65,16 @@ public class ContasReceberService {
             String razaoSocial,
             LocalDate dataInicio,
             LocalDate dataFim,
+            Integer idCliente,
             Pageable pageable) {
         Page<ContasReceber> contasReceber;
 
-        if (razaoSocial == null || razaoSocial.trim().isEmpty()) {
+        if (idCliente != null) {
+            String razaoSocialParam = (razaoSocial != null && !razaoSocial.trim().isEmpty())
+                    ? "%" + razaoSocial + "%"
+                    : null;
+            contasReceber = contasReceberRepository.buscarPorClienteComFiltro(idCliente, razaoSocialParam, dataInicio, dataFim, pageable);
+        } else if (razaoSocial == null || razaoSocial.trim().isEmpty()) {
             contasReceber = contasReceberRepository.buscarPorIntervaloDeDatas(dataInicio, dataFim, pageable);
         } else {
             contasReceber = contasReceberRepository.buscarPorFiltro(razaoSocial, dataInicio, dataFim, pageable);
