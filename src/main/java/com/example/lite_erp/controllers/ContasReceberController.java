@@ -1,8 +1,10 @@
 package com.example.lite_erp.controllers;
 
 import com.example.lite_erp.entities.contas_receber.ContasReceberFiltroDTO;
+import com.example.lite_erp.entities.contas_receber.ContasReceberPorPedidoRequestDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberRequestDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberResponseDTO;
+import com.example.lite_erp.swagger.respostas.ExemploListaContasReceberResponseDTO;
 import com.example.lite_erp.services.ContasReceberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -164,5 +166,35 @@ public class ContasReceberController {
             @PathVariable Integer id) {
         ContasReceberResponseDTO contaRecebida = contasReceberService.realizarRecebimento(id);
         return ResponseEntity.ok(contaRecebida);
+    }
+
+    @Operation(
+            summary = "Gerar contas a receber por pedido",
+            description = "Gera contas a receber baseadas em um pedido específico, utilizando a forma de pagamento informada para definir o parcelamento. O número do documento será o ID do pedido precedido por 'PED-'. Após a geração das contas, o status do pedido será alterado para 'baixado'.",
+            tags = {"Contas a Receber"}
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Contas a receber geradas com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ExemploListaContasReceberResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Pedido, forma de pagamento ou tipo de cobrança não encontrados"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Forma de pagamento sem parcelamento configurado ou contas já existem para o pedido"
+            )
+    })
+    @PostMapping("/gerar-por-pedido")
+    public ResponseEntity<List<ContasReceberResponseDTO>> gerarContasReceberPorPedido(
+            @RequestBody ContasReceberPorPedidoRequestDTO dto) {
+        List<ContasReceberResponseDTO> contasGeradas = contasReceberService.gerarContasReceberPorPedido(dto);
+        return ResponseEntity.ok(contasGeradas);
     }
 }

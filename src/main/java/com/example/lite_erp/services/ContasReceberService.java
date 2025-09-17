@@ -2,13 +2,20 @@ package com.example.lite_erp.services;
 
 import com.example.lite_erp.entities.contas_receber.*;
 import com.example.lite_erp.entities.clientes.ClientesRepository;
+import com.example.lite_erp.entities.forma_pagamento.FormaPagamento;
 import com.example.lite_erp.entities.forma_pagamento.FormaPagamentoRepository;
+import com.example.lite_erp.entities.pedidos.Pedidos;
+import com.example.lite_erp.entities.pedidos.PedidosRepository;
+import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +34,9 @@ public class ContasReceberService {
 
     @Autowired
     private TiposCobrancaRepository tiposCobrancaRepository;
+
+    @Autowired
+    private PedidosRepository pedidosRepository;
 
     public ContasReceberResponseDTO salvarContaReceber(ContasReceberRequestDTO dto) {
         ContasReceber conta = new ContasReceber();
@@ -152,5 +162,66 @@ public class ContasReceberService {
 
         ContasReceber contaAtualizada = contasReceberRepository.save(conta);
         return new ContasReceberResponseDTO(contaAtualizada);
+    }
+
+    @Transactional
+    public List<ContasReceberResponseDTO> gerarContasReceberPorPedido(ContasReceberPorPedidoRequestDTO dto) {
+        // Buscar o pedido
+        Pedidos pedido = pedidosRepository.findById(dto.idPedido())
+                .orElseThrow(() -> new RuntimeException("Pedido não encontrado."));
+
+        // Buscar forma de pagamento
+        FormaPagamento formaPagamento = formaPagamentoRepository.findById(dto.idFormaPagamento())
+                .orElseThrow(() -> new RuntimeException("Forma de pagamento não encontrada."));
+
+        // Buscar tipo de cobrança
+        TiposCobranca tipoCobranca = tiposCobrancaRepository.findById(dto.idTipoCobranca())
+                .orElseThrow(() -> new RuntimeException("Tipo de cobrança não encontrado."));
+
+        if (formaPagamento.getDiasFormaPagamento() == null || formaPagamento.getDiasFormaPagamento().isEmpty()) {
+            throw new RuntimeException("Forma de pagamento não possui parcelamento configurado.");
+        }
+
+        // Verificar se já existem contas a receber para este pedido
+        List<ContasReceber> contasExistentes = contasReceberRepository.findByNumeroDocumento("PED-" + pedido.getId());
+        if (!contasExistentes.isEmpty()) {
+            throw new RuntimeException("Já existem contas a receber geradas para este pedido.");
+        }
+
+        // Calcular parcelamento
+        BigDecimal valorTotal = pedido.getValorTotal();
+        int totalParcelas = formaPagamento.getDiasFormaPagamento().size();
+        BigDecimal valorParcela = valorTotal.divide(BigDecimal.valueOf(totalParcelas), 2, RoundingMode.HALF_UP);
+
+        List<ContasReceber> contasGeradas = new java.util.ArrayList<>();
+        final int[] contadorParcela = {1};
+
+        // Gerar uma conta para cada dia de vencimento configurado na forma de pagamento
+        formaPagamento.getDiasFormaPagamento().forEach(dia -> {
+            ContasReceber conta = new ContasReceber();
+            conta.setCliente(pedido.getCliente());
+            conta.setFormaPagamento(formaPagamento);
+            conta.setTiposCobranca(tipoCobranca);
+            conta.setNumeroDocumento("PED-" + pedido.getId());
+            conta.setParcela(contadorParcela[0]);
+            conta.setValorParcela(valorParcela);
+            conta.setValorTotal(valorTotal);
+            conta.setDataVencimento(pedido.getDataEmissao().toLocalDate().plusDays(dia.getDiasParaVencimento()));
+            conta.setStatus("aberta");
+
+            contadorParcela[0]++;
+
+            // Salvar conta no repositório
+            ContasReceber contaSalva = contasReceberRepository.save(conta);
+            contasGeradas.add(contaSalva);
+        });
+
+        // Alterar o status do pedido para "baixado"
+        pedido.setStatus("baixado");
+        pedidosRepository.save(pedido);
+
+        return contasGeradas.stream()
+                .map(ContasReceberResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }
