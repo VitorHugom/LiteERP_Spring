@@ -3,6 +3,8 @@ package com.example.lite_erp.controllers;
 import com.example.lite_erp.entities.categoria_usuario.CategoriasUsuarioRepository;
 import com.example.lite_erp.entities.usuario.*;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
+import com.example.lite_erp.infra.exceptions.BusinessException;
+import com.example.lite_erp.infra.exceptions.ResourceNotFoundException;
 import com.example.lite_erp.infra.security.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,23 +52,17 @@ public class AuthController {
     )
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO body) {
         // Busca o usuário pelo nome de usuário
-        Optional<Usuario> optionalUsuario = this.repository.findByNomeUsuario(body.nomeUsuario());
-
-        if (optionalUsuario.isEmpty()) {
-            // Retorna 404 se o usuário não for encontrado
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
-        }
-
-        Usuario usuario = optionalUsuario.get();
+        Usuario usuario = this.repository.findByNomeUsuario(body.nomeUsuario())
+                .orElseThrow(() -> ResourceNotFoundException.usuario(body.nomeUsuario()));
 
         // Verifica o status do usuário
         if (!"autorizado".equals(usuario.getStatus())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Usuário não autorizado");
+            throw BusinessException.usuarioNaoAutorizado(usuario.getNomeUsuario());
         }
 
         // Verifica a senha
         if (!passwordEncoder.matches(body.senha(), usuario.getSenha())) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Senha incorreta");
+            throw BusinessException.senhaIncorreta();
         }
 
         // Gera o token se tudo estiver correto
@@ -77,22 +73,22 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity register(@RequestBody RegisterRequestDTO body) {
-        Optional<Usuario> usuarioExistente = this.repository.findByNomeUsuario(body.nomeUsuario());
-
-        if (usuarioExistente.isEmpty()) {
-            System.out.println("Criando usuario");
-            Usuario novoUsuario = new Usuario();
-            novoUsuario.setSenha(passwordEncoder.encode(body.senha()));
-            novoUsuario.setEmail(body.email());
-            novoUsuario.setNomeUsuario(body.nomeUsuario());
-            novoUsuario.setCategoria_id(body.categoria_id());
-            novoUsuario.setTelefone(body.telefone());
-            novoUsuario.setStatus("bloqueado");
-            this.repository.save(novoUsuario);
-
-            return ResponseEntity.ok(Map.of("message", "User registered successfully"));
+        // Verificar se o usuário já existe
+        if (this.repository.findByNomeUsuario(body.nomeUsuario()).isPresent()) {
+            throw BusinessException.usuarioJaExiste(body.nomeUsuario());
         }
 
-        return ResponseEntity.badRequest().build();
+        // Criar novo usuário
+        Usuario novoUsuario = new Usuario();
+        novoUsuario.setSenha(passwordEncoder.encode(body.senha()));
+        novoUsuario.setEmail(body.email());
+        novoUsuario.setNomeUsuario(body.nomeUsuario());
+        novoUsuario.setCategoria_id(body.categoria_id());
+        novoUsuario.setTelefone(body.telefone());
+        novoUsuario.setStatus("bloqueado");
+        this.repository.save(novoUsuario);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("message", "Usuário registrado com sucesso"));
     }
 }
