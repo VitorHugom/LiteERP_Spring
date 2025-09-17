@@ -26,9 +26,54 @@ public interface ContasPagarRepository extends JpaRepository<ContasPagar, Long> 
             Pageable pageable);
 
     @Query("SELECT c FROM ContasPagar c WHERE " +
+            "(:razaoSocial IS NULL OR LOWER(c.fornecedor.razaoSocial) LIKE LOWER(CONCAT('%', :razaoSocial, '%'))) AND " +
+            "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
+            "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasPagar> buscarPorFiltroSomentePagar(
+            @Param("razaoSocial") String razaoSocial,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasPagar c WHERE " +
             "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
             "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim)")
     Page<ContasPagar> buscarPorIntervaloDeDatas(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasPagar c WHERE " +
+            "(COALESCE(:dataInicio, c.dataVencimento) = c.dataVencimento OR c.dataVencimento >= :dataInicio) AND " +
+            "(COALESCE(:dataFim, c.dataVencimento) = c.dataVencimento OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasPagar> buscarPorIntervaloDeDatasSomentePagar(
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasPagar c WHERE " +
+            "c.fornecedor.id = :idFornecedor AND " +
+            "(:razaoSocial IS NULL OR c.fornecedor.razaoSocial LIKE :razaoSocial) AND " +
+            "(:dataInicio IS NULL OR c.dataVencimento >= :dataInicio) AND " +
+            "(:dataFim IS NULL OR c.dataVencimento <= :dataFim)")
+    Page<ContasPagar> buscarPorFornecedorComFiltro(
+            @Param("idFornecedor") Long idFornecedor,
+            @Param("razaoSocial") String razaoSocial,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT c FROM ContasPagar c WHERE " +
+            "c.fornecedor.id = :idFornecedor AND " +
+            "(:razaoSocial IS NULL OR c.fornecedor.razaoSocial LIKE :razaoSocial) AND " +
+            "(:dataInicio IS NULL OR c.dataVencimento >= :dataInicio) AND " +
+            "(:dataFim IS NULL OR c.dataVencimento <= :dataFim) AND " +
+            "c.status = 'aberta'")
+    Page<ContasPagar> buscarPorFornecedorComFiltroSomentePagar(
+            @Param("idFornecedor") Long idFornecedor,
+            @Param("razaoSocial") String razaoSocial,
             @Param("dataInicio") LocalDate dataInicio,
             @Param("dataFim") LocalDate dataFim,
             Pageable pageable);

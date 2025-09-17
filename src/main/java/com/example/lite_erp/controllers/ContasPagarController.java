@@ -44,14 +44,88 @@ public class ContasPagarController {
         return contasPagarService.buscarContaPagarPorId(id);
     }
 
+    @Operation(
+            summary = "Buscar contas a pagar com filtros",
+            description = "Busca contas a pagar aplicando filtros opcionais por razão social do fornecedor, período de vencimento e fornecedor específico. Retorna resultados paginados.",
+            tags = {"Contas a Pagar"},
+            parameters = {
+                    @Parameter(
+                            name = "razaoSocial",
+                            description = "Filtro por razão social do fornecedor (busca parcial, ignora maiúsculas/minúsculas)",
+                            example = "Fornecedor ABC Ltda",
+                            schema = @Schema(implementation = String.class)
+                    ),
+                    @Parameter(
+                            name = "dataInicio",
+                            description = "Data inicial do período para filtrar as contas a pagar por data de vencimento",
+                            example = "2024-01-01",
+                            schema = @Schema(implementation = LocalDate.class)
+                    ),
+                    @Parameter(
+                            name = "dataFim",
+                            description = "Data final do período para filtrar as contas a pagar por data de vencimento",
+                            example = "2024-12-31",
+                            schema = @Schema(implementation = LocalDate.class)
+                    ),
+                    @Parameter(
+                            name = "idFornecedor",
+                            description = "ID do fornecedor para filtrar todas as contas a pagar deste fornecedor específico",
+                            example = "123",
+                            schema = @Schema(implementation = Long.class)
+                    ),
+                    @Parameter(
+                            name = "somenteReceber",
+                            description = "Se true, retorna apenas contas com status 'aberta' (não pagas). Se false ou não informado, retorna todas as contas independente do status",
+                            example = "true",
+                            schema = @Schema(implementation = Boolean.class)
+                    ),
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>id:</strong> Ordena por ID da conta</li>" +
+                                    "<li><strong>dataVencimento:</strong> Ordena por data de vencimento</li>" +
+                                    "<li><strong>valorTotal:</strong> Ordena por valor total</li>" +
+                                    "<li><strong>numeroDocumento:</strong> Ordena por número do documento</li>" +
+                                    "</ul>",
+                            example = "dataVencimento,asc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Busca realizada com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = Page.class)
+                    )
+            )
+    })
     @GetMapping("/buscar")
     public Page<ContasPagarResponseDTO> buscarContasPagarComFiltro(
             @RequestParam(required = false) String razaoSocial,
             @RequestParam(required = false) LocalDate dataInicio,
             @RequestParam(required = false) LocalDate dataFim,
-            Pageable pageable) {
+            @RequestParam(required = false) Long idFornecedor,
+            @RequestParam(required = false) Boolean somentePagar,
+            @Parameter(hidden = true) Pageable pageable) {
 
-        return contasPagarService.buscarContasPagarComFiltro(razaoSocial, dataInicio, dataFim, pageable);
+        return contasPagarService.buscarContasPagarComFiltro(razaoSocial, dataInicio, dataFim, idFornecedor, somentePagar, pageable);
     }
 
     @PutMapping("/{id}")
@@ -62,6 +136,37 @@ public class ContasPagarController {
     @DeleteMapping("/{id}")
     public void excluirContaPagar(@PathVariable Long id) {
         contasPagarService.excluirContaPagar(id);
+    }
+
+    @Operation(
+            summary = "Realizar pagamento de conta a pagar",
+            description = "Realiza o pagamento de uma conta a pagar, alterando seu status de 'aberta' para 'paga'.",
+            tags = {"Contas a Pagar"}
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Pagamento realizado com sucesso",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ContasPagarResponseDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Conta a pagar não encontrada"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Conta já foi paga"
+            )
+    })
+    @PatchMapping("/{id}/pagar")
+    public ResponseEntity<ContasPagarResponseDTO> realizarPagamento(
+            @Parameter(description = "ID da conta a pagar", example = "1")
+            @PathVariable Long id) {
+        ContasPagarResponseDTO contaPaga = contasPagarService.realizarPagamento(id);
+        return ResponseEntity.ok(contaPaga);
     }
 
 

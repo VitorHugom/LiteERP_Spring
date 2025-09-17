@@ -69,18 +69,33 @@ public class ContasPagarService {
             String razaoSocial,
             LocalDate dataInicio,
             LocalDate dataFim,
+            Long idFornecedor,
+            Boolean somentePagar,
             Pageable pageable) {
 
         Page<ContasPagar> contasPagar;
 
-        System.out.println(razaoSocial);
-
-        if (razaoSocial == null || razaoSocial.trim().isEmpty()) {
-            // Busca somente por intervalo de datas
-            contasPagar = contasPagarRepository.buscarPorIntervaloDeDatas(dataInicio, dataFim, pageable);
+        if (idFornecedor != null) {
+            String razaoSocialParam = (razaoSocial != null && !razaoSocial.trim().isEmpty())
+                    ? "%" + razaoSocial + "%"
+                    : null;
+            if (Boolean.TRUE.equals(somentePagar)) {
+                contasPagar = contasPagarRepository.buscarPorFornecedorComFiltroSomentePagar(idFornecedor, razaoSocialParam, dataInicio, dataFim, pageable);
+            } else {
+                contasPagar = contasPagarRepository.buscarPorFornecedorComFiltro(idFornecedor, razaoSocialParam, dataInicio, dataFim, pageable);
+            }
+        } else if (razaoSocial == null || razaoSocial.trim().isEmpty()) {
+            if (Boolean.TRUE.equals(somentePagar)) {
+                contasPagar = contasPagarRepository.buscarPorIntervaloDeDatasSomentePagar(dataInicio, dataFim, pageable);
+            } else {
+                contasPagar = contasPagarRepository.buscarPorIntervaloDeDatas(dataInicio, dataFim, pageable);
+            }
         } else {
-            // Busca considerando razão social e intervalo de datas
-            contasPagar = contasPagarRepository.buscarPorFiltro(razaoSocial, dataInicio, dataFim, pageable);
+            if (Boolean.TRUE.equals(somentePagar)) {
+                contasPagar = contasPagarRepository.buscarPorFiltroSomentePagar(razaoSocial, dataInicio, dataFim, pageable);
+            } else {
+                contasPagar = contasPagarRepository.buscarPorFiltro(razaoSocial, dataInicio, dataFim, pageable);
+            }
         }
 
         return contasPagar.map(ContasPagarResponseDTO::new);
@@ -163,5 +178,19 @@ public class ContasPagarService {
                     idsParcelas
             );
         });
+    }
+
+    public ContasPagarResponseDTO realizarPagamento(Long id) {
+        ContasPagar conta = contasPagarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta a pagar não encontrada."));
+
+        if ("paga".equals(conta.getStatus())) {
+            throw new RuntimeException("Esta conta já foi paga.");
+        }
+
+        conta.setStatus("paga");
+
+        ContasPagar contaAtualizada = contasPagarRepository.save(conta);
+        return new ContasPagarResponseDTO(contaAtualizada);
     }
 }
