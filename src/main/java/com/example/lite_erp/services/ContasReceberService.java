@@ -8,6 +8,8 @@ import com.example.lite_erp.entities.pedidos.Pedidos;
 import com.example.lite_erp.entities.pedidos.PedidosRepository;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,13 @@ public class ContasReceberService {
     @Autowired
     private PedidosRepository pedidosRepository;
 
+    @Autowired
+    private ContaCaixaRepository contaCaixaRepository;
+
+    @Autowired
+    private FluxoCaixaIntegracaoService fluxoCaixaIntegracaoService;
+
+    @Transactional
     public ContasReceberResponseDTO salvarContaReceber(ContasReceberRequestDTO dto) {
         ContasReceber conta = new ContasReceber();
 
@@ -56,6 +65,17 @@ public class ContasReceberService {
         conta.setStatus(dto.status());
 
         conta = contasReceberRepository.save(conta);
+
+        // Se status for "paga", criar movimentação no fluxo de caixa
+        if ("paga".equals(dto.status())) {
+            try {
+                processarRecebimentoAutomatico(conta.getId());
+            } catch (Exception e) {
+                // Log do erro, mas não falha a operação
+                System.err.println("Erro ao criar movimentação de caixa para conta a receber " + conta.getId() + ": " + e.getMessage());
+            }
+        }
+
         return new ContasReceberResponseDTO(conta);
     }
 
@@ -106,9 +126,13 @@ public class ContasReceberService {
         return contasReceber.map(ContasReceberResponseDTO::new);
     }
 
+    @Transactional
     public ContasReceberResponseDTO atualizarContaReceber(Integer id, ContasReceberRequestDTO dto) {
         ContasReceber contaExistente = contasReceberRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conta a receber não encontrada."));
+
+        // Captura o status anterior para verificar mudança
+        String statusAnterior = contaExistente.getStatus();
 
         contaExistente.setCliente(clientesRepository.findById(dto.idCliente())
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado.")));
@@ -125,6 +149,24 @@ public class ContasReceberService {
         contaExistente.setStatus(dto.status());
 
         ContasReceber contaAtualizada = contasReceberRepository.save(contaExistente);
+
+        // Verificar mudanças de status para integração com fluxo de caixa
+        if ("paga".equals(dto.status()) && !"paga".equals(statusAnterior)) {
+            // Status mudou para "paga" - criar movimentação
+            try {
+                processarRecebimentoAutomatico(contaAtualizada.getId());
+            } catch (Exception e) {
+                System.err.println("Erro ao criar movimentação de caixa para conta a receber " + contaAtualizada.getId() + ": " + e.getMessage());
+            }
+        } else if ("paga".equals(statusAnterior) && !"paga".equals(dto.status())) {
+            // Status mudou de "paga" para outro - criar estorno
+            try {
+                criarEstornoContaReceber(contaAtualizada.getId());
+            } catch (Exception e) {
+                System.err.println("Erro ao criar estorno de caixa para conta a receber " + contaAtualizada.getId() + ": " + e.getMessage());
+            }
+        }
+
         return new ContasReceberResponseDTO(contaAtualizada);
     }
 
@@ -150,6 +192,7 @@ public class ContasReceberService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public ContasReceberResponseDTO realizarRecebimento(Integer id) {
         ContasReceber conta = contasReceberRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conta a receber não encontrada."));
@@ -158,9 +201,31 @@ public class ContasReceberService {
             throw new RuntimeException("Esta conta já foi paga.");
         }
 
-        conta.setStatus("paga");
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
 
-        ContasReceber contaAtualizada = contasReceberRepository.save(conta);
+        try {
+            // Integrar com fluxo de caixa usando a data atual
+            fluxoCaixaIntegracaoService.processarRecebimentoContaReceber(
+                    id,
+                    contaCaixaId,
+                    1L, // TODO: Pegar usuário logado
+                    LocalDate.now(),
+                    "Recebimento processado via endpoint antigo"
+            );
+        } catch (Exception e) {
+            // Se falhar a integração, apenas atualizar o status (compatibilidade)
+            conta.setStatus("paga");
+            ContasReceber contaAtualizada = contasReceberRepository.save(conta);
+            return new ContasReceberResponseDTO(contaAtualizada);
+        }
+
+        // Se chegou aqui, a integração foi bem-sucedida
+        ContasReceber contaAtualizada = contasReceberRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta a receber não encontrada após processamento"));
         return new ContasReceberResponseDTO(contaAtualizada);
     }
 
@@ -216,12 +281,54 @@ public class ContasReceberService {
             contasGeradas.add(contaSalva);
         });
 
-        // Alterar o status do pedido para "baixado"
-        pedido.setStatus("baixado");
+        // Alterar o status do pedido para "carteira"
+        pedido.setStatus("carteira");
         pedidosRepository.save(pedido);
 
         return contasGeradas.stream()
                 .map(ContasReceberResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Método auxiliar para processar recebimento automático via fluxo de caixa
+     */
+    private void processarRecebimentoAutomatico(Integer contaReceberId) {
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+
+        // Processar recebimento via integração automática (sem verificação de status)
+        fluxoCaixaIntegracaoService.processarRecebimentoAutomatico(
+                contaReceberId,
+                contaCaixaId,
+                1L, // TODO: Pegar usuário logado do contexto
+                LocalDate.now(),
+                "Recebimento processado automaticamente via criação/atualização"
+        );
+    }
+
+    /**
+     * Método auxiliar para criar estorno de uma conta a receber
+     */
+    private void criarEstornoContaReceber(Integer contaReceberId) {
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+
+        // Criar estorno via integração
+        fluxoCaixaIntegracaoService.criarEstornoContaReceber(
+                contaReceberId,
+                contaCaixaId,
+                1L, // TODO: Pegar usuário logado do contexto
+                LocalDate.now(),
+                "Estorno de recebimento processado automaticamente via atualização"
+        );
     }
 }

@@ -4,6 +4,8 @@ import com.example.lite_erp.entities.contas_pagar.*;
 import com.example.lite_erp.entities.forma_pagamento.FormaPagamentoRepository;
 import com.example.lite_erp.entities.fornecedores.FornecedoresRepository;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ContasPagarService {
@@ -29,6 +32,13 @@ public class ContasPagarService {
     @Autowired
     private TiposCobrancaRepository tiposCobrancaRepository;
 
+    @Autowired
+    private ContaCaixaRepository contaCaixaRepository;
+
+    @Autowired
+    private FluxoCaixaIntegracaoService fluxoCaixaIntegracaoService;
+
+    @Transactional
     public ContasPagarResponseDTO salvarContaPagar(ContasPagarRequestDTO dto) {
         ContasPagar conta = new ContasPagar();
 
@@ -49,6 +59,16 @@ public class ContasPagarService {
         conta.setStatus(dto.status());
 
         conta = contasPagarRepository.save(conta);
+
+        // Se status for "paga", criar movimentação no fluxo de caixa
+        if ("paga".equals(dto.status())) {
+            try {
+                processarPagamentoAutomatico(conta.getId());
+            } catch (Exception e) {
+                // Log do erro, mas não falha a operação
+                System.err.println("Erro ao criar movimentação de caixa para conta a pagar " + conta.getId() + ": " + e.getMessage());
+            }
+        }
 
         return new ContasPagarResponseDTO(conta);
     }
@@ -101,10 +121,14 @@ public class ContasPagarService {
         return contasPagar.map(ContasPagarResponseDTO::new);
     }
 
+    @Transactional
     public ContasPagarResponseDTO atualizarContaPagar(Long id, ContasPagarRequestDTO dto) {
         // Busca a conta existente
         ContasPagar contaExistente = contasPagarRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conta a pagar não encontrada."));
+
+        // Captura o status anterior para verificar mudança
+        String statusAnterior = contaExistente.getStatus();
 
         // Atualiza os campos
         contaExistente.setFornecedor(fornecedorRepository.findById(dto.fornecedorId())
@@ -123,6 +147,23 @@ public class ContasPagarService {
 
         // Salva as alterações
         ContasPagar contaAtualizada = contasPagarRepository.save(contaExistente);
+
+        // Verificar mudanças de status para integração com fluxo de caixa
+        if ("paga".equals(dto.status()) && !"paga".equals(statusAnterior)) {
+            // Status mudou para "paga" - criar movimentação
+            try {
+                processarPagamentoAutomatico(contaAtualizada.getId());
+            } catch (Exception e) {
+                System.err.println("Erro ao criar movimentação de caixa para conta a pagar " + contaAtualizada.getId() + ": " + e.getMessage());
+            }
+        } else if ("paga".equals(statusAnterior) && !"paga".equals(dto.status())) {
+            // Status mudou de "paga" para outro - criar estorno
+            try {
+                criarEstornoContaPagar(contaAtualizada.getId());
+            } catch (Exception e) {
+                System.err.println("Erro ao criar estorno de caixa para conta a pagar " + contaAtualizada.getId() + ": " + e.getMessage());
+            }
+        }
 
         return new ContasPagarResponseDTO(contaAtualizada);
     }
@@ -180,6 +221,7 @@ public class ContasPagarService {
         });
     }
 
+    @Transactional
     public ContasPagarResponseDTO realizarPagamento(Long id) {
         ContasPagar conta = contasPagarRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conta a pagar não encontrada."));
@@ -188,9 +230,74 @@ public class ContasPagarService {
             throw new RuntimeException("Esta conta já foi paga.");
         }
 
-        conta.setStatus("paga");
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
 
-        ContasPagar contaAtualizada = contasPagarRepository.save(conta);
+        try {
+            // Integrar com fluxo de caixa usando a data atual
+            fluxoCaixaIntegracaoService.processarPagamentoContaPagar(
+                    id,
+                    contaCaixaId,
+                    1L, // TODO: Pegar usuário logado
+                    LocalDate.now(),
+                    "Pagamento processado via endpoint antigo"
+            );
+        } catch (Exception e) {
+            // Se falhar a integração, apenas atualizar o status (compatibilidade)
+            conta.setStatus("paga");
+            ContasPagar contaAtualizada = contasPagarRepository.save(conta);
+            return new ContasPagarResponseDTO(contaAtualizada);
+        }
+
+        // Se chegou aqui, a integração foi bem-sucedida
+        ContasPagar contaAtualizada = contasPagarRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Conta a pagar não encontrada após processamento"));
         return new ContasPagarResponseDTO(contaAtualizada);
+    }
+
+    /**
+     * Método auxiliar para processar pagamento automático via fluxo de caixa
+     */
+    private void processarPagamentoAutomatico(Long contaPagarId) {
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+
+        // Processar pagamento via integração automática (sem verificação de status)
+        fluxoCaixaIntegracaoService.processarPagamentoAutomatico(
+                contaPagarId,
+                contaCaixaId,
+                1L, // TODO: Pegar usuário logado do contexto
+                LocalDate.now(),
+                "Pagamento processado automaticamente via criação/atualização"
+        );
+    }
+
+    /**
+     * Método auxiliar para criar estorno de uma conta a pagar
+     */
+    private void criarEstornoContaPagar(Long contaPagarId) {
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+
+        // Criar estorno via integração
+        fluxoCaixaIntegracaoService.criarEstornoContaPagar(
+                contaPagarId,
+                contaCaixaId,
+                1L, // TODO: Pegar usuário logado do contexto
+                LocalDate.now(),
+                "Estorno de pagamento processado automaticamente via atualização"
+        );
     }
 }

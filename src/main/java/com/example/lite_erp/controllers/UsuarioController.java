@@ -4,6 +4,7 @@ import com.example.lite_erp.entities.usuario.*;
 import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import com.example.lite_erp.services.UsuarioService;
+import com.example.lite_erp.services.UsuarioFluxoCaixaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +30,9 @@ public class UsuarioController {
     private UsuarioRepository usuarioRepository;
     @Autowired
     private VendedoresRepository vendedoresRepository;
+
+    @Autowired
+    private UsuarioFluxoCaixaService usuarioFluxoCaixaService;
 
     @Autowired
     private UsuarioService usuarioService;
@@ -77,6 +81,9 @@ public class UsuarioController {
                 // Salvar o vendedor no banco de dados
                 vendedoresRepository.save(novoVendedor);
             }
+
+            // Criar conta de caixa padrão para o usuário autorizado
+            usuarioFluxoCaixaService.criarContaCaixaPadrao(usuario);
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Usuário aprovado com sucesso.");
