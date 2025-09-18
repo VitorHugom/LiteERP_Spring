@@ -26,14 +26,21 @@ public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
     private final SecurityFilter securityFilter;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Autowired
     private CorsConfig corsConfig;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailsService userDetailsService, SecurityFilter securityFilter) {
+    public SecurityConfig(CustomUserDetailsService userDetailsService,
+                         SecurityFilter securityFilter,
+                         CustomAuthenticationEntryPoint customAuthenticationEntryPoint,
+                         CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.userDetailsService = userDetailsService;
         this.securityFilter = securityFilter;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -53,6 +60,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .requestMatchers("/usuario/**").hasRole("GERENCIAL")
                         .anyRequest().authenticated())
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler))
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

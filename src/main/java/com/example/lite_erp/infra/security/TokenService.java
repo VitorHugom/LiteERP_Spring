@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.example.lite_erp.entities.usuario.Usuario;
+import com.example.lite_erp.infra.exceptions.AuthenticationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class TokenService {
             return token;
         } catch (JWTCreationException exception) {
             logger.error("Erro ao gerar o token para o usuário: {} - Erro: {}", usuario.getNomeUsuario(), exception.getMessage());
-            throw new RuntimeException("Erro ao autenticar", exception);
+            throw new AuthenticationException("Erro ao gerar token de autenticação", "TOKEN_GENERATION_ERROR");
         }
     }
 
