@@ -103,4 +103,37 @@ public interface ContasReceberRepository extends JpaRepository<ContasReceber, In
             @Param("valorTotalInicial")     BigDecimal valorTotalInicial,
             @Param("valorTotalFinal")       BigDecimal valorTotalFinal
     );
+
+    @Query(value = """
+        SELECT c.data_vencimento as dataVencimento,
+               SUM(c.valor_parcela) as valorTotalParcelas,
+               COUNT(c.id) as qtdParcelas,
+               STRING_AGG(c.id::text, ',') as idsParcelas
+        FROM contas_receber c
+        WHERE (COALESCE(:status, '') = '' OR c.status = :status)
+          AND (COALESCE(:dataInicio, c.data_vencimento) = c.data_vencimento OR c.data_vencimento >= :dataInicio)
+          AND (COALESCE(:dataFim, c.data_vencimento) = c.data_vencimento OR c.data_vencimento <= :dataFim)
+          AND (COALESCE(:idCliente, c.id_cliente) = c.id_cliente OR c.id_cliente = :idCliente)
+          AND (COALESCE(:idFormaPagamento, c.id_forma_pagamento) = c.id_forma_pagamento OR c.id_forma_pagamento = :idFormaPagamento)
+        GROUP BY c.data_vencimento
+        ORDER BY c.data_vencimento ASC
+    """,
+    countQuery = """
+        SELECT COUNT(DISTINCT c.data_vencimento)
+        FROM contas_receber c
+        WHERE (COALESCE(:status, '') = '' OR c.status = :status)
+          AND (COALESCE(:dataInicio, c.data_vencimento) = c.data_vencimento OR c.data_vencimento >= :dataInicio)
+          AND (COALESCE(:dataFim, c.data_vencimento) = c.data_vencimento OR c.data_vencimento <= :dataFim)
+          AND (COALESCE(:idCliente, c.id_cliente) = c.id_cliente OR c.id_cliente = :idCliente)
+          AND (COALESCE(:idFormaPagamento, c.id_forma_pagamento) = c.id_forma_pagamento OR c.id_forma_pagamento = :idFormaPagamento)
+    """,
+    nativeQuery = true)
+    Page<ContasReceberRelatorioProjection> buscarRelatorioContasPorData(
+            @Param("status") String status,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            @Param("idCliente") Integer idCliente,
+            @Param("idFormaPagamento") Integer idFormaPagamento,
+            Pageable pageable
+    );
 }

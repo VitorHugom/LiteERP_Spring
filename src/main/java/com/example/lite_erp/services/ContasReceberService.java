@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -330,5 +331,35 @@ public class ContasReceberService {
                 LocalDate.now(),
                 "Estorno de recebimento processado automaticamente via atualização"
         );
+    }
+
+    public Page<ContasReceberRelatorioResponseDTO> gerarRelatorioContasPorData(
+            ContasReceberRelatorioFiltroDTO filtro,
+            Pageable pageable) {
+
+        String statusFiltro = filtro.status();
+
+        Page<ContasReceberRelatorioProjection> projections = contasReceberRepository.buscarRelatorioContasPorData(
+                statusFiltro,
+                filtro.dataInicio(),
+                filtro.dataFim(),
+                filtro.idCliente(),
+                filtro.idFormaPagamento(),
+                pageable
+        );
+
+        return projections.map(projection -> {
+            List<Integer> idsParcelas = Arrays.stream(projection.getIdsParcelas().split(","))
+                    .map(String::trim)
+                    .map(Integer::parseInt)
+                    .collect(Collectors.toList());
+
+            return new ContasReceberRelatorioResponseDTO(
+                    projection.getDataVencimento(),
+                    projection.getValorTotalParcelas(),
+                    projection.getQtdParcelas(),
+                    idsParcelas
+            );
+        });
     }
 }

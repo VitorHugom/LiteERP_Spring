@@ -4,6 +4,8 @@ import com.example.lite_erp.entities.contas_receber.ContasReceberFiltroDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberPorPedidoRequestDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberRequestDTO;
 import com.example.lite_erp.entities.contas_receber.ContasReceberResponseDTO;
+import com.example.lite_erp.entities.contas_receber.ContasReceberRelatorioFiltroDTO;
+import com.example.lite_erp.entities.contas_receber.ContasReceberRelatorioResponseDTO;
 import com.example.lite_erp.swagger.respostas.ExemploListaContasReceberResponseDTO;
 import com.example.lite_erp.services.ContasReceberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -196,5 +198,87 @@ public class ContasReceberController {
             @RequestBody ContasReceberPorPedidoRequestDTO dto) {
         List<ContasReceberResponseDTO> contasGeradas = contasReceberService.gerarContasReceberPorPedido(dto);
         return ResponseEntity.ok(contasGeradas);
+    }
+
+    @Operation(
+            summary = "Gerar relatório de contas a receber para gráfico",
+            description = "Retorna dados agregados de contas a receber agrupados por data de vencimento, com valor total, quantidade e lista de IDs das parcelas por dia. Ideal para geração de gráficos no frontend.",
+            tags = {"Contas a Receber"},
+            parameters = {
+                    @Parameter(
+                            name = "dataInicio",
+                            description = "Data inicial do período para filtrar as contas a receber",
+                            example = "2024-01-01",
+                            schema = @Schema(implementation = LocalDate.class)
+                    ),
+                    @Parameter(
+                            name = "dataFim",
+                            description = "Data final do período para filtrar as contas a receber",
+                            example = "2024-12-31",
+                            schema = @Schema(implementation = LocalDate.class)
+                    ),
+                    @Parameter(
+                            name = "status",
+                            description = "Status das contas a incluir no relatório. Se não informado, retorna todas as contas",
+                            example = "aberta",
+                            schema = @Schema(implementation = String.class)
+                    ),
+                    @Parameter(
+                            name = "idCliente",
+                            description = "ID do cliente para filtrar as contas a receber",
+                            example = "1",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "idFormaPagamento",
+                            description = "ID da forma de pagamento para filtrar as contas a receber",
+                            example = "2",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>dataVencimento:</strong> Ordena por data de vencimento</li>" +
+                                    "<li><strong>valorTotalParcelas:</strong> Ordena por valor total das parcelas</li>" +
+                                    "<li><strong>qtdParcelas:</strong> Ordena por quantidade de parcelas</li>" +
+                                    "</ul>",
+                            example = "dataVencimento,asc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
+    )
+    @GetMapping("/relatorio-grafico")
+    public ResponseEntity<Page<ContasReceberRelatorioResponseDTO>> gerarRelatorioGrafico(
+            @RequestParam(required = false) LocalDate dataInicio,
+            @RequestParam(required = false) LocalDate dataFim,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Integer idCliente,
+            @RequestParam(required = false) Integer idFormaPagamento,
+            @Parameter(hidden = true) Pageable pageable
+    ) {
+        ContasReceberRelatorioFiltroDTO filtro = new ContasReceberRelatorioFiltroDTO(
+                dataInicio,
+                dataFim,
+                status,
+                idCliente,
+                idFormaPagamento
+        );
+
+        Page<ContasReceberRelatorioResponseDTO> relatorio = contasReceberService.gerarRelatorioContasPorData(filtro, pageable);
+        return ResponseEntity.ok(relatorio);
     }
 }
