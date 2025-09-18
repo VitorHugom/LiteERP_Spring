@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -332,6 +333,39 @@ public class FluxoCaixaIntegracaoService {
                 "Estorno Pagamento - " + contaPagar.getFornecedor().getRazaoSocial(),
                 contaPagar.getValorParcela(), // Valor positivo para entrada (estorno)
                 dataEstorno,
+                usuarioLancamentoId,
+                observacoes
+        );
+    }
+
+    @Transactional
+    public MovimentacaoCaixaResponseDTO processarRecebimentoPedido(
+            Long pedidoId,
+            String numeroDocumento,
+            String descricaoCliente,
+            BigDecimal valorRecebimento,
+            Long contaCaixaId,
+            Long usuarioLancamentoId,
+            LocalDate dataRecebimento,
+            String observacoes) {
+
+        // Buscar tipo de movimentação para recebimento
+        TipoMovimentacao tipoRecebimento = tipoMovimentacaoRepository
+                .findByDescricaoContainingIgnoreCase("Venda à Vista")
+                .orElse(tipoMovimentacaoRepository
+                        .findByDescricaoContainingIgnoreCase("Recebimento")
+                        .orElseThrow(() -> new RuntimeException("Tipo de movimentação para recebimento não encontrado")));
+
+        // Criar movimentação de entrada (valor positivo)
+        return movimentacaoCaixaService.criarMovimentacaoAutomatica(
+                contaCaixaId,
+                tipoRecebimento.getId(),
+                MovimentacaoCaixa.TipoOrigem.MANUAL, // Usar MANUAL para recebimentos diretos de pedidos
+                pedidoId,
+                numeroDocumento,
+                "Recebimento Pedido - " + descricaoCliente,
+                valorRecebimento, // Valor positivo para entrada
+                dataRecebimento,
                 usuarioLancamentoId,
                 observacoes
         );

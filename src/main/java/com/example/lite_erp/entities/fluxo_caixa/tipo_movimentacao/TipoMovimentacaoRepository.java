@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TipoMovimentacaoRepository extends JpaRepository<TipoMovimentacao, Long> {
 
@@ -20,4 +21,6 @@ public interface TipoMovimentacaoRepository extends JpaRepository<TipoMovimentac
             @Param("categoria") TipoMovimentacao.CategoriaMovimentacao categoria,
             @Param("ativo") Boolean ativo
     );
+
+    Optional<TipoMovimentacao> findByDescricaoContainingIgnoreCase(String descricao);
 }

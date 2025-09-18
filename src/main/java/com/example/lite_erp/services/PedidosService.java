@@ -7,6 +7,8 @@ import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
+import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +37,12 @@ public class PedidosService {
 
     @Autowired
     private TiposCobrancaRepository tiposCobrancaRepository;
+
+    @Autowired
+    private FluxoCaixaIntegracaoService fluxoCaixaIntegracaoService;
+
+    @Autowired
+    private ContaCaixaRepository contaCaixaRepository;
 
     // Método para listar todos os pedidos
     public List<Pedidos> listarTodos() {
@@ -120,9 +128,23 @@ public class PedidosService {
 
     public Optional<Pedidos> atualizarStatus(Long id, String novoStatus) {
         return pedidosRepository.findById(id).map(pedido -> {
+            String statusAnterior = pedido.getStatus();
             pedido.setStatus(novoStatus);
             pedido.setUltimaAtualizacao(LocalDateTime.now());  // Atualiza a data de última atualização
-            return pedidosRepository.save(pedido);  // Salva o pedido com o novo status
+
+            Pedidos pedidoSalvo = pedidosRepository.save(pedido);  // Salva o pedido com o novo status
+
+            // Integração com fluxo de caixa quando o pedido é baixado
+            if ("baixado".equals(novoStatus) && !"baixado".equals(statusAnterior)) {
+                try {
+                    processarRecebimentoPedido(pedidoSalvo);
+                } catch (Exception e) {
+                    // Log do erro, mas não falha a operação principal
+                    System.err.println("Erro ao processar recebimento do pedido " + id + ": " + e.getMessage());
+                }
+            }
+
+            return pedidoSalvo;
         });
     }
 
@@ -162,6 +184,30 @@ public class PedidosService {
         return lista.stream()
                 .map(PedidosResponseDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Método auxiliar para processar recebimento automático quando pedido é baixado
+     */
+    private void processarRecebimentoPedido(Pedidos pedido) {
+        // Buscar conta de caixa padrão (primeira ativa)
+        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
+                .stream()
+                .findFirst()
+                .map(ContaCaixa::getId)
+                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+
+        // Criar movimentação de entrada via integração
+        fluxoCaixaIntegracaoService.processarRecebimentoPedido(
+                pedido.getId(),
+                "PED-" + pedido.getId(),
+                pedido.getCliente().getRazaoSocial(),
+                pedido.getValorTotal(),
+                contaCaixaId,
+                1L, // TODO: Pegar usuário logado do contexto
+                LocalDate.now(),
+                "Recebimento automático - Pedido #" + pedido.getId() + " baixado"
+        );
     }
 }
 
