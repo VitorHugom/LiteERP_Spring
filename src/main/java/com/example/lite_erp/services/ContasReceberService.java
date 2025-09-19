@@ -206,20 +206,16 @@ public class ContasReceberService {
             throw new RuntimeException("Esta conta já foi paga.");
         }
 
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
-
         try {
-            // Integrar com fluxo de caixa usando a data atual
+            Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+            Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
+
             fluxoCaixaIntegracaoService.processarRecebimentoContaReceber(
                     id,
                     contaCaixaId,
-                    1L, // TODO: Pegar usuário logado
+                    usuarioLogadoId,
                     LocalDate.now(),
-                    "Recebimento processado via endpoint antigo"
+                    "Recebimento processado via endpoint /receber"
             );
         } catch (Exception e) {
             // Se falhar a integração, apenas atualizar o status (compatibilidade)
