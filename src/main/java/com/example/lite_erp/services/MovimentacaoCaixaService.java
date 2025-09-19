@@ -48,15 +48,55 @@ public class MovimentacaoCaixaService {
     }
 
     @Transactional(readOnly = true)
+    public Page<MovimentacaoCaixaResponseDTO> listarTodas(LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
+        if (dataInicio != null || dataFim != null) {
+            MovimentacaoCaixaFiltroDTO filtro = new MovimentacaoCaixaFiltroDTO(
+                    null, null, null, null, null,
+                    dataInicio, dataFim, null, null,
+                    null, null, ""
+            );
+            return filtrar(filtro, pageable);
+        }
+        return listarTodas(pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Page<MovimentacaoCaixaResponseDTO> listarPorConta(Long contaCaixaId, Pageable pageable) {
         return movimentacaoCaixaRepository.findByContaCaixaIdOrderByDataMovimentacaoDescDataLancamentoDesc(contaCaixaId, pageable)
                 .map(MovimentacaoCaixaResponseDTO::new);
     }
 
     @Transactional(readOnly = true)
+    public Page<MovimentacaoCaixaResponseDTO> listarPorConta(Long contaCaixaId, LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
+        if (dataInicio != null && dataFim != null) {
+            // Ambas as datas informadas
+            return movimentacaoCaixaRepository.findByContaCaixaIdAndDataMovimentacaoBetween(contaCaixaId, dataInicio, dataFim, pageable)
+                    .map(MovimentacaoCaixaResponseDTO::new);
+        } else if (dataInicio != null) {
+            // Apenas data início informada
+            return movimentacaoCaixaRepository.findByContaCaixaIdAndDataMovimentacaoGreaterThanEqual(contaCaixaId, dataInicio, pageable)
+                    .map(MovimentacaoCaixaResponseDTO::new);
+        } else if (dataFim != null) {
+            // Apenas data fim informada
+            return movimentacaoCaixaRepository.findByContaCaixaIdAndDataMovimentacaoLessThanEqual(contaCaixaId, dataFim, pageable)
+                    .map(MovimentacaoCaixaResponseDTO::new);
+        }
+        return listarPorConta(contaCaixaId, pageable);
+    }
+
+    @Transactional(readOnly = true)
     public Page<MovimentacaoCaixaResponseDTO> listarAcessiveisPorUsuario(Long usuarioId, Pageable pageable) {
         return movimentacaoCaixaRepository.findMovimentacoesAcessiveisPorUsuario(usuarioId, pageable)
                 .map(MovimentacaoCaixaResponseDTO::new);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MovimentacaoCaixaResponseDTO> listarAcessiveisPorUsuario(Long usuarioId, LocalDate dataInicio, LocalDate dataFim, Pageable pageable) {
+        if (dataInicio != null || dataFim != null) {
+            return movimentacaoCaixaRepository.findMovimentacoesAcessiveisPorUsuarioComFiltroData(usuarioId, dataInicio, dataFim, pageable)
+                    .map(MovimentacaoCaixaResponseDTO::new);
+        }
+        return listarAcessiveisPorUsuario(usuarioId, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -148,6 +188,9 @@ public class MovimentacaoCaixaService {
 
     @Transactional(readOnly = true)
     public Page<MovimentacaoCaixaResponseDTO> filtrar(MovimentacaoCaixaFiltroDTO filtro, Pageable pageable) {
+        // Garantir que descricao nunca seja null para evitar problemas com PostgreSQL
+        String descricao = filtro.descricao() != null ? filtro.descricao() : "";
+
         return movimentacaoCaixaRepository.findByFiltros(
                 filtro.contaCaixaId(),
                 filtro.tipoMovimentacaoId(),
@@ -160,7 +203,7 @@ public class MovimentacaoCaixaService {
                 filtro.valorMaximo(),
                 filtro.status(),
                 filtro.usuarioResponsavelId(),
-                filtro.descricao(),
+                descricao,
                 pageable
         ).map(MovimentacaoCaixaResponseDTO::new);
     }

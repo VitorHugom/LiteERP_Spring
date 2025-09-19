@@ -29,7 +29,7 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
             "(:valorMaximo IS NULL OR m.valor <= :valorMaximo) AND " +
             "(:status IS NULL OR m.status = :status) AND " +
             "(:usuarioResponsavelId IS NULL OR m.contaCaixa.usuarioResponsavel.id = :usuarioResponsavelId) AND " +
-            "(:descricao IS NULL OR LOWER(m.descricao) LIKE LOWER(CONCAT('%', :descricao, '%'))) " +
+            "(:descricao = '' OR m.descricao LIKE CONCAT('%', :descricao, '%')) " +
             "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
     Page<MovimentacaoCaixa> findByFiltros(
             @Param("contaCaixaId") Long contaCaixaId,
@@ -75,4 +75,46 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
             "EXISTS (SELECT 1 FROM Usuario u WHERE u.id = :usuarioId AND u.categoria.nome_categoria = 'ADMIN') " +
             "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
     Page<MovimentacaoCaixa> findMovimentacoesAcessiveisPorUsuario(@Param("usuarioId") Long usuarioId, Pageable pageable);
+
+    @Query("SELECT m FROM MovimentacaoCaixa m WHERE " +
+            "(m.contaCaixa.usuarioResponsavel.id = :usuarioId OR " +
+            "EXISTS (SELECT 1 FROM Usuario u WHERE u.id = :usuarioId AND u.categoria.nome_categoria = 'ADMIN')) AND " +
+            "(:dataInicio IS NULL OR m.dataMovimentacao >= :dataInicio) AND " +
+            "(:dataFim IS NULL OR m.dataMovimentacao <= :dataFim) " +
+            "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
+    Page<MovimentacaoCaixa> findMovimentacoesAcessiveisPorUsuarioComFiltroData(
+            @Param("usuarioId") Long usuarioId,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    // Métodos simplificados para filtrar por conta e datas
+    @Query("SELECT m FROM MovimentacaoCaixa m WHERE " +
+            "m.contaCaixa.id = :contaCaixaId AND " +
+            "m.dataMovimentacao >= :dataInicio " +
+            "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
+    Page<MovimentacaoCaixa> findByContaCaixaIdAndDataMovimentacaoGreaterThanEqual(
+            @Param("contaCaixaId") Long contaCaixaId,
+            @Param("dataInicio") LocalDate dataInicio,
+            Pageable pageable);
+
+    @Query("SELECT m FROM MovimentacaoCaixa m WHERE " +
+            "m.contaCaixa.id = :contaCaixaId AND " +
+            "m.dataMovimentacao <= :dataFim " +
+            "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
+    Page<MovimentacaoCaixa> findByContaCaixaIdAndDataMovimentacaoLessThanEqual(
+            @Param("contaCaixaId") Long contaCaixaId,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
+
+    @Query("SELECT m FROM MovimentacaoCaixa m WHERE " +
+            "m.contaCaixa.id = :contaCaixaId AND " +
+            "m.dataMovimentacao >= :dataInicio AND " +
+            "m.dataMovimentacao <= :dataFim " +
+            "ORDER BY m.dataMovimentacao DESC, m.dataLancamento DESC")
+    Page<MovimentacaoCaixa> findByContaCaixaIdAndDataMovimentacaoBetween(
+            @Param("contaCaixaId") Long contaCaixaId,
+            @Param("dataInicio") LocalDate dataInicio,
+            @Param("dataFim") LocalDate dataFim,
+            Pageable pageable);
 }

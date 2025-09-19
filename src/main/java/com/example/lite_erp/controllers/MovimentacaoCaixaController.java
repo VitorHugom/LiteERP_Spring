@@ -14,9 +14,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/fluxo-caixa/movimentacoes")
@@ -28,9 +31,21 @@ public class MovimentacaoCaixaController {
 
     @Operation(
             summary = "Listar todas as movimentações",
-            description = "Lista todas as movimentações de caixa com paginação, ordenadas por data decrescente.",
+            description = "Lista todas as movimentações de caixa com paginação e filtros opcionais por período, ordenadas por data decrescente.",
             tags = {"Fluxo de Caixa - Movimentações"},
             parameters = {
+                    @Parameter(
+                            name = "dataInicio",
+                            description = "Data inicial do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-01",
+                            schema = @Schema(implementation = String.class)
+                    ),
+                    @Parameter(
+                            name = "dataFim",
+                            description = "Data final do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-31",
+                            schema = @Schema(implementation = String.class)
+                    ),
                     @Parameter(
                             name = "page",
                             description = "Número da página",
@@ -69,16 +84,35 @@ public class MovimentacaoCaixaController {
             )
     })
     @GetMapping
-    public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarTodas(@Parameter(hidden = true) Pageable pageable) {
-        Page<MovimentacaoCaixaResponseDTO> movimentacoes = movimentacaoCaixaService.listarTodas(pageable);
+    public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarTodas(
+            @Parameter(description = "Data inicial do período", example = "2024-01-01")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+
+            @Parameter(description = "Data final do período", example = "2024-01-31")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+
+            @Parameter(hidden = true) Pageable pageable) {
+        Page<MovimentacaoCaixaResponseDTO> movimentacoes = movimentacaoCaixaService.listarTodas(dataInicio, dataFim, pageable);
         return ResponseEntity.ok(movimentacoes);
     }
 
     @Operation(
             summary = "Listar movimentações acessíveis ao usuário",
-            description = "Lista movimentações de caixa que o usuário logado pode acessar (próprias contas ou todas se for admin).",
+            description = "Lista movimentações de caixa que o usuário logado pode acessar (próprias contas ou todas se for admin) com filtros opcionais por período.",
             tags = {"Fluxo de Caixa - Movimentações"},
             parameters = {
+                    @Parameter(
+                            name = "dataInicio",
+                            description = "Data inicial do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-01",
+                            schema = @Schema(implementation = String.class)
+                    ),
+                    @Parameter(
+                            name = "dataFim",
+                            description = "Data final do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-31",
+                            schema = @Schema(implementation = String.class)
+                    ),
                     @Parameter(
                             name = "page",
                             description = "Número da página",
@@ -118,19 +152,37 @@ public class MovimentacaoCaixaController {
     })
     @GetMapping("/acessiveis")
     public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarAcessiveis(
+            @Parameter(description = "Data inicial do período", example = "2024-01-01")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+
+            @Parameter(description = "Data final do período", example = "2024-01-31")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+
             Authentication authentication,
             @Parameter(hidden = true) Pageable pageable) {
         Usuario usuario = (Usuario) authentication.getPrincipal();
-        Page<MovimentacaoCaixaResponseDTO> movimentacoes = 
-                movimentacaoCaixaService.listarAcessiveisPorUsuario(usuario.getId(), pageable);
+        Page<MovimentacaoCaixaResponseDTO> movimentacoes =
+                movimentacaoCaixaService.listarAcessiveisPorUsuario(usuario.getId(), dataInicio, dataFim, pageable);
         return ResponseEntity.ok(movimentacoes);
     }
 
     @Operation(
             summary = "Listar movimentações por conta",
-            description = "Lista movimentações de uma conta de caixa específica.",
+            description = "Lista movimentações de uma conta de caixa específica com filtros opcionais por período.",
             tags = {"Fluxo de Caixa - Movimentações"},
             parameters = {
+                    @Parameter(
+                            name = "dataInicio",
+                            description = "Data inicial do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-01",
+                            schema = @Schema(implementation = String.class)
+                    ),
+                    @Parameter(
+                            name = "dataFim",
+                            description = "Data final do período para filtrar as movimentações por data de movimentação",
+                            example = "2024-01-31",
+                            schema = @Schema(implementation = String.class)
+                    ),
                     @Parameter(
                             name = "page",
                             description = "Número da página",
@@ -172,9 +224,16 @@ public class MovimentacaoCaixaController {
     public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarPorConta(
             @Parameter(description = "ID da conta de caixa", example = "1")
             @PathVariable Long contaCaixaId,
+
+            @Parameter(description = "Data inicial do período", example = "2024-01-01")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataInicio,
+
+            @Parameter(description = "Data final do período", example = "2024-01-31")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dataFim,
+
             @Parameter(hidden = true) Pageable pageable) {
-        Page<MovimentacaoCaixaResponseDTO> movimentacoes = 
-                movimentacaoCaixaService.listarPorConta(contaCaixaId, pageable);
+        Page<MovimentacaoCaixaResponseDTO> movimentacoes =
+                movimentacaoCaixaService.listarPorConta(contaCaixaId, dataInicio, dataFim, pageable);
         return ResponseEntity.ok(movimentacoes);
     }
 
