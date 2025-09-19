@@ -313,18 +313,15 @@ public class ContasReceberService {
      * Método auxiliar para criar estorno de uma conta a receber
      */
     private void criarEstornoContaReceber(Integer contaReceberId) {
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+        // Buscar conta de caixa padrão do usuário logado
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
         // Criar estorno via integração
         fluxoCaixaIntegracaoService.criarEstornoContaReceber(
                 contaReceberId,
                 contaCaixaId,
-                1L, // TODO: Pegar usuário logado do contexto
+                usuarioLogadoId,
                 LocalDate.now(),
                 "Estorno de recebimento processado automaticamente via atualização"
         );

@@ -234,21 +234,18 @@ public class ContasPagarService {
             throw new RuntimeException("Esta conta já foi paga.");
         }
 
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
-
         try {
+            // Buscar conta de caixa padrão do usuário logado
+            Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+            Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
+
             // Integrar com fluxo de caixa usando a data atual
             fluxoCaixaIntegracaoService.processarPagamentoContaPagar(
                     id,
                     contaCaixaId,
-                    1L, // TODO: Pegar usuário logado
+                    usuarioLogadoId,
                     LocalDate.now(),
-                    "Pagamento processado via endpoint antigo"
+                    "Pagamento processado via endpoint /pagar"
             );
         } catch (Exception e) {
             // Se falhar a integração, apenas atualizar o status (compatibilidade)
@@ -285,18 +282,15 @@ public class ContasPagarService {
      * Método auxiliar para criar estorno de uma conta a pagar
      */
     private void criarEstornoContaPagar(Long contaPagarId) {
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+        // Buscar conta de caixa padrão do usuário logado
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
         // Criar estorno via integração
         fluxoCaixaIntegracaoService.criarEstornoContaPagar(
                 contaPagarId,
                 contaCaixaId,
-                1L, // TODO: Pegar usuário logado do contexto
+                usuarioLogadoId,
                 LocalDate.now(),
                 "Estorno de pagamento processado automaticamente via atualização"
         );
