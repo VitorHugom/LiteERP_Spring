@@ -29,7 +29,34 @@ public class MovimentacaoCaixaController {
     @Operation(
             summary = "Listar todas as movimentações",
             description = "Lista todas as movimentações de caixa com paginação, ordenadas por data decrescente.",
-            tags = {"Fluxo de Caixa - Movimentações"}
+            tags = {"Fluxo de Caixa - Movimentações"},
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>dataMovimentacao:</strong> Data da movimentação</li>" +
+                                    "<li><strong>dataLancamento:</strong> Data de lançamento</li>" +
+                                    "<li><strong>valor:</strong> Valor da movimentação</li>" +
+                                    "<li><strong>descricao:</strong> Descrição da movimentação</li>" +
+                                    "</ul>",
+                            example = "dataMovimentacao,desc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
     )
     @ApiResponses({
             @ApiResponse(
@@ -42,7 +69,7 @@ public class MovimentacaoCaixaController {
             )
     })
     @GetMapping
-    public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarTodas(Pageable pageable) {
+    public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarTodas(@Parameter(hidden = true) Pageable pageable) {
         Page<MovimentacaoCaixaResponseDTO> movimentacoes = movimentacaoCaixaService.listarTodas(pageable);
         return ResponseEntity.ok(movimentacoes);
     }
@@ -50,7 +77,34 @@ public class MovimentacaoCaixaController {
     @Operation(
             summary = "Listar movimentações acessíveis ao usuário",
             description = "Lista movimentações de caixa que o usuário logado pode acessar (próprias contas ou todas se for admin).",
-            tags = {"Fluxo de Caixa - Movimentações"}
+            tags = {"Fluxo de Caixa - Movimentações"},
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>dataMovimentacao:</strong> Data da movimentação</li>" +
+                                    "<li><strong>dataLancamento:</strong> Data de lançamento</li>" +
+                                    "<li><strong>valor:</strong> Valor da movimentação</li>" +
+                                    "<li><strong>descricao:</strong> Descrição da movimentação</li>" +
+                                    "</ul>",
+                            example = "dataMovimentacao,desc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
     )
     @ApiResponses({
             @ApiResponse(
@@ -64,8 +118,8 @@ public class MovimentacaoCaixaController {
     })
     @GetMapping("/acessiveis")
     public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarAcessiveis(
-            Authentication authentication, 
-            Pageable pageable) {
+            Authentication authentication,
+            @Parameter(hidden = true) Pageable pageable) {
         Usuario usuario = (Usuario) authentication.getPrincipal();
         Page<MovimentacaoCaixaResponseDTO> movimentacoes = 
                 movimentacaoCaixaService.listarAcessiveisPorUsuario(usuario.getId(), pageable);
@@ -75,7 +129,34 @@ public class MovimentacaoCaixaController {
     @Operation(
             summary = "Listar movimentações por conta",
             description = "Lista movimentações de uma conta de caixa específica.",
-            tags = {"Fluxo de Caixa - Movimentações"}
+            tags = {"Fluxo de Caixa - Movimentações"},
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>dataMovimentacao:</strong> Data da movimentação</li>" +
+                                    "<li><strong>dataLancamento:</strong> Data de lançamento</li>" +
+                                    "<li><strong>valor:</strong> Valor da movimentação</li>" +
+                                    "<li><strong>descricao:</strong> Descrição da movimentação</li>" +
+                                    "</ul>",
+                            example = "dataMovimentacao,desc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
     )
     @ApiResponses({
             @ApiResponse(
@@ -91,7 +172,7 @@ public class MovimentacaoCaixaController {
     public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> listarPorConta(
             @Parameter(description = "ID da conta de caixa", example = "1")
             @PathVariable Long contaCaixaId,
-            Pageable pageable) {
+            @Parameter(hidden = true) Pageable pageable) {
         Page<MovimentacaoCaixaResponseDTO> movimentacoes = 
                 movimentacaoCaixaService.listarPorConta(contaCaixaId, pageable);
         return ResponseEntity.ok(movimentacoes);
@@ -124,8 +205,35 @@ public class MovimentacaoCaixaController {
 
     @Operation(
             summary = "Filtrar movimentações",
-            description = "Busca movimentações aplicando filtros opcionais por conta, tipo, período, valor, etc.",
-            tags = {"Fluxo de Caixa - Movimentações"}
+            description = "Busca movimentações aplicando filtros opcionais por conta, tipo, período, valor, etc. Retorna resultados paginados ordenados por data decrescente.",
+            tags = {"Fluxo de Caixa - Movimentações"},
+            parameters = {
+                    @Parameter(
+                            name = "page",
+                            description = "Número da página",
+                            example = "0",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "size",
+                            description = "Quantidade de itens por página",
+                            example = "10",
+                            schema = @Schema(implementation = Integer.class)
+                    ),
+                    @Parameter(
+                            name = "sort",
+                            description = "Ordenação no formato atributo,ordem (asc|desc)<br/>" +
+                                    "<br/><strong>Campos disponíveis para ordenação:</strong>" +
+                                    "<ul>" +
+                                    "<li><strong>dataMovimentacao:</strong> Data da movimentação</li>" +
+                                    "<li><strong>dataLancamento:</strong> Data de lançamento</li>" +
+                                    "<li><strong>valor:</strong> Valor da movimentação</li>" +
+                                    "<li><strong>descricao:</strong> Descrição da movimentação</li>" +
+                                    "</ul>",
+                            example = "dataMovimentacao,desc",
+                            schema = @Schema(implementation = String.class)
+                    )
+            }
     )
     @ApiResponses({
             @ApiResponse(
@@ -140,7 +248,7 @@ public class MovimentacaoCaixaController {
     @PostMapping("/filtrar")
     public ResponseEntity<Page<MovimentacaoCaixaResponseDTO>> filtrar(
             @RequestBody MovimentacaoCaixaFiltroDTO filtro,
-            Pageable pageable) {
+            @Parameter(hidden = true) Pageable pageable) {
         Page<MovimentacaoCaixaResponseDTO> movimentacoes = 
                 movimentacaoCaixaService.filtrar(filtro, pageable);
         return ResponseEntity.ok(movimentacoes);
