@@ -10,6 +10,7 @@ import com.example.lite_erp.entities.tipos_cobranca.TiposCobranca;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
+import com.example.lite_erp.infra.security.AuthenticationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +47,9 @@ public class ContasReceberService {
 
     @Autowired
     private FluxoCaixaIntegracaoService fluxoCaixaIntegracaoService;
+
+    @Autowired
+    private UsuarioContaCaixaService usuarioContaCaixaService;
 
     @Transactional
     public ContasReceberResponseDTO salvarContaReceber(ContasReceberRequestDTO dto) {
@@ -295,18 +299,15 @@ public class ContasReceberService {
      * Método auxiliar para processar recebimento automático via fluxo de caixa
      */
     private void processarRecebimentoAutomatico(Integer contaReceberId) {
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+        // Buscar conta de caixa padrão do usuário logado
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
         // Processar recebimento via integração automática (sem verificação de status)
         fluxoCaixaIntegracaoService.processarRecebimentoAutomatico(
                 contaReceberId,
                 contaCaixaId,
-                1L, // TODO: Pegar usuário logado do contexto
+                usuarioLogadoId,
                 LocalDate.now(),
                 "Recebimento processado automaticamente via criação/atualização"
         );

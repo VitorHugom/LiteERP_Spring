@@ -6,6 +6,7 @@ import com.example.lite_erp.entities.fornecedores.FornecedoresRepository;
 import com.example.lite_erp.entities.tipos_cobranca.TiposCobrancaRepository;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
+import com.example.lite_erp.infra.security.AuthenticationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +38,9 @@ public class ContasPagarService {
 
     @Autowired
     private FluxoCaixaIntegracaoService fluxoCaixaIntegracaoService;
+
+    @Autowired
+    private UsuarioContaCaixaService usuarioContaCaixaService;
 
     @Transactional
     public ContasPagarResponseDTO salvarContaPagar(ContasPagarRequestDTO dto) {
@@ -263,18 +267,15 @@ public class ContasPagarService {
      * Método auxiliar para processar pagamento automático via fluxo de caixa
      */
     private void processarPagamentoAutomatico(Long contaPagarId) {
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+        // Buscar conta de caixa padrão do usuário logado
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
         // Processar pagamento via integração automática (sem verificação de status)
         fluxoCaixaIntegracaoService.processarPagamentoAutomatico(
                 contaPagarId,
                 contaCaixaId,
-                1L, // TODO: Pegar usuário logado do contexto
+                usuarioLogadoId,
                 LocalDate.now(),
                 "Pagamento processado automaticamente via criação/atualização"
         );

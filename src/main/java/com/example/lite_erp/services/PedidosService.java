@@ -9,6 +9,7 @@ import com.example.lite_erp.entities.vendedores.Vendedores;
 import com.example.lite_erp.entities.vendedores.VendedoresRepository;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixa;
 import com.example.lite_erp.entities.fluxo_caixa.conta_caixa.ContaCaixaRepository;
+import com.example.lite_erp.infra.security.AuthenticationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -43,6 +44,9 @@ public class PedidosService {
 
     @Autowired
     private ContaCaixaRepository contaCaixaRepository;
+
+    @Autowired
+    private UsuarioContaCaixaService usuarioContaCaixaService;
 
     // Método para listar todos os pedidos
     public List<Pedidos> listarTodos() {
@@ -190,12 +194,9 @@ public class PedidosService {
      * Método auxiliar para processar recebimento automático quando pedido é baixado
      */
     private void processarRecebimentoPedido(Pedidos pedido) {
-        // Buscar conta de caixa padrão (primeira ativa)
-        Long contaCaixaId = contaCaixaRepository.findByAtivoTrueOrderByDescricao()
-                .stream()
-                .findFirst()
-                .map(ContaCaixa::getId)
-                .orElseThrow(() -> new RuntimeException("Nenhuma conta de caixa ativa encontrada"));
+        // Buscar conta de caixa padrão do usuário logado
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
         // Criar movimentação de entrada via integração
         fluxoCaixaIntegracaoService.processarRecebimentoPedido(
@@ -204,7 +205,7 @@ public class PedidosService {
                 pedido.getCliente().getRazaoSocial(),
                 pedido.getValorTotal(),
                 contaCaixaId,
-                1L, // TODO: Pegar usuário logado do contexto
+                usuarioLogadoId,
                 LocalDate.now(),
                 "Recebimento automático - Pedido #" + pedido.getId() + " baixado"
         );

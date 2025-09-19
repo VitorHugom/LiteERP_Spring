@@ -8,6 +8,7 @@ import com.example.lite_erp.entities.fluxo_caixa.movimentacao_caixa.Movimentacao
 import com.example.lite_erp.entities.fluxo_caixa.movimentacao_caixa.MovimentacaoCaixaResponseDTO;
 import com.example.lite_erp.entities.fluxo_caixa.tipo_movimentacao.TipoMovimentacao;
 import com.example.lite_erp.entities.fluxo_caixa.tipo_movimentacao.TipoMovimentacaoRepository;
+import com.example.lite_erp.infra.security.AuthenticationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,9 @@ public class FluxoCaixaIntegracaoService {
 
     @Autowired
     private TipoMovimentacaoRepository tipoMovimentacaoRepository;
+
+    @Autowired
+    private UsuarioContaCaixaService usuarioContaCaixaService;
 
     /**
      * Processa o pagamento de uma conta a pagar, criando a movimentação no caixa
@@ -369,5 +373,56 @@ public class FluxoCaixaIntegracaoService {
                 usuarioLancamentoId,
                 observacoes
         );
+    }
+
+    // ========== MÉTODOS AUXILIARES PARA USAR CONTA DO USUÁRIO LOGADO ==========
+
+    /**
+     * Processa pagamento usando a conta padrão do usuário logado
+     */
+    @Transactional
+    public MovimentacaoCaixaResponseDTO processarPagamentoContaPagarUsuarioLogado(
+            Long contaPagarId,
+            LocalDate dataPagamento,
+            String observacoes) {
+
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
+
+        return processarPagamentoContaPagar(contaPagarId, contaCaixaId, usuarioLogadoId, dataPagamento, observacoes);
+    }
+
+    /**
+     * Processa recebimento usando a conta padrão do usuário logado
+     */
+    @Transactional
+    public MovimentacaoCaixaResponseDTO processarRecebimentoContaReceberUsuarioLogado(
+            Integer contaReceberId,
+            LocalDate dataRecebimento,
+            String observacoes) {
+
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
+
+        return processarRecebimentoContaReceber(contaReceberId, contaCaixaId, usuarioLogadoId, dataRecebimento, observacoes);
+    }
+
+    /**
+     * Processa recebimento de pedido usando a conta padrão do usuário logado
+     */
+    @Transactional
+    public MovimentacaoCaixaResponseDTO processarRecebimentoPedidoUsuarioLogado(
+            Long pedidoId,
+            String numeroDocumento,
+            String descricaoCliente,
+            BigDecimal valorRecebimento,
+            LocalDate dataRecebimento,
+            String observacoes) {
+
+        Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
+        Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
+
+        return processarRecebimentoPedido(pedidoId, numeroDocumento, descricaoCliente, valorRecebimento,
+                contaCaixaId, usuarioLogadoId, dataRecebimento, observacoes);
     }
 }
