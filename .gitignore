@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Cloudflare Tunnel ###
+# Arquivos de credenciais do Cloudflare (dados sensíveis)
+cloudflared/
+# Nota: config.yml é commitado pois contém apenas configuração pública
+
+### Docker ###
+# Logs do Docker
+docker-compose.override.yml

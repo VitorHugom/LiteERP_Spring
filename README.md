@@ -13,6 +13,28 @@ Um sistema ERP básico desenvolvido em Spring Boot para pequenas empresas.
 - **JWT** (Autenticação)
 - **SpringDoc OpenAPI** (Documentação da API)
 - **Docker**
+- **Cloudflare Tunnel** (Deploy em produção)
+
+## 🌐 Deploy com Cloudflare Tunnel
+
+### 📖 Documentação Completa:
+- **[TUTORIAL-CLOUDFLARE-TUNNEL.md](TUTORIAL-CLOUDFLARE-TUNNEL.md)** - Guia passo a passo completo
+- **[CHECKLIST-DEPLOY.md](CHECKLIST-DEPLOY.md)** - Lista de verificação antes do deploy
+
+### ⚡ Deploy Rápido:
+```bash
+# 1. Copiar arquivos de credenciais para cloudflared/
+# 2. Ajustar config.yml com seu domínio
+# 3. Executar deploy
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+**Estrutura necessária:**
+```
+cloudflared/
+├── cert.pem           # Certificado do Cloudflare
+└── {tunnel-id}.json   # Credenciais do tunnel
+```
 
 ## 📋 Pré-requisitos
 
@@ -57,6 +79,23 @@ docker-compose -f docker-compose.dev.yml up -d
 ```
 
 A aplicação estará disponível em: `http://localhost:8080`
+
+## 📁 Estrutura do Projeto
+
+```
+📁 LiteERP_Spring/
+├── src/main/java/           # Código fonte Java
+├── src/main/resources/      # Recursos e configurações
+│   ├── db/migration/        # Scripts Flyway
+│   └── application*.yml     # Configurações por profile
+├── config.yml              # Configuração Cloudflare Tunnel
+├── docker-compose*.yml     # Configurações Docker
+├── cloudflared/            # Credenciais Cloudflare (não commitado)
+│   ├── cert.pem
+│   └── {tunnel-id}.json
+└── scripts/                # Scripts utilitários
+    └── run-local.bat
+```
 
 ## 📋 Profiles Disponíveis
 
@@ -103,30 +142,45 @@ docker run -p 8080:8080 \
 A imagem está disponível no Docker Hub e é automaticamente atualizada via GitHub Actions:
 
 ```bash
-docker pull <seu-usuario>/lite-erp:latest
+docker pull vitorhugoms/lite-erp-backend:latest
 docker run -p 8080:8080 \
   -e DATABASE_URL=jdbc:postgresql://seu-host:5432/LiteERP \
   -e DATABASE_USERNAME=postgres \
   -e DATABASE_PASSWORD=sua-senha \
-  <seu-usuario>/lite-erp:latest
+  vitorhugoms/lite-erp-backend:latest
 ```
 
-## 🔧 Variáveis de Ambiente (Docker)
+## ⚡ Comandos Essenciais
 
-| Variável | Descrição | Padrão |
-|----------|-----------|---------|
-| `SPRING_PROFILES_ACTIVE` | Profile ativo | `docker` |
-| `DATABASE_URL` | URL do banco PostgreSQL | `jdbc:postgresql://liteerp-db:5432/LiteERP` |
-| `DATABASE_USERNAME` | Usuário do banco | `postgres` |
-| `DATABASE_PASSWORD` | Senha do banco | `postgres` |
-| `JWT_SECRET` | Chave secreta JWT | `seguranca-top-production` |
-| `SERVER_PORT` | Porta da aplicação | `8080` |
+### Desenvolvimento Local:
+```bash
+# Iniciar banco de dados
+docker-compose -f docker-compose.dev.yml up -d
+
+# Executar aplicação
+./mvnw spring-boot:run -Plocal
+
+# Executar testes
+./mvnw test
+```
+
+### Produção:
+```bash
+# Deploy completo
+docker-compose -f docker-compose.prod.yml up -d
+
+# Ver logs
+docker-compose -f docker-compose.prod.yml logs -f
+
+# Parar aplicação
+docker-compose -f docker-compose.prod.yml down
+```
 
 ## 📚 Documentação da API
 
 A documentação da API está disponível via Swagger UI:
-- **Local**: `http://localhost:8080/swagger-ui.html`
-- **Produção**: `http://seu-dominio/swagger-ui.html`
+- **Local**: `http://localhost:8080/swagger-ui/index.html`
+- **Produção**: `https://api.seu-dominio.com/swagger-ui/index.html`
 
 ## 🔍 Health Check
 
@@ -139,13 +193,6 @@ O projeto utiliza GitHub Actions para:
 - ✅ Executar testes automatizados
 - 🐳 Build e push da imagem Docker
 - 🔒 Scan de segurança com Trivy
-- 📝 Atualização automática da descrição no Docker Hub
-
-### Configuração dos Secrets
-
-Para que a pipeline funcione, configure os seguintes secrets no GitHub:
-- `DOCKERHUB_USERNAME`: Seu usuário do Docker Hub
-- `DOCKERHUB_TOKEN`: Token de acesso do Docker Hub
 
 ## 🤝 Contribuição
 
@@ -161,6 +208,6 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 📞 Contato
 
-Seu Nome - [@seu_twitter](https://twitter.com/seu_twitter) - seu.email@exemplo.com
+Vitor Hugo - vitorhugoms@outlook.com
 
-Link do Projeto: [https://github.com/seu-usuario/LiteERP_Spring](https://github.com/seu-usuario/LiteERP_Spring)
+Link do Projeto: [https://github.com/vitorhugoms/LiteERP_Spring](https://github.com/vitorhugoms/LiteERP_Spring)
