@@ -1,9 +1,11 @@
 package com.example.lite_erp.entities.fornecedores;
 
 import com.example.lite_erp.entities.cidades.Cidades;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record FornecedoresRequestDTO(
         String tipoPessoa,
         String cpf,

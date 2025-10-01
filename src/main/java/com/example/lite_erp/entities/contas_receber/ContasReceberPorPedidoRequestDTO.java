@@ -1,7 +1,9 @@
 package com.example.lite_erp.entities.contas_receber;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record ContasReceberPorPedidoRequestDTO(
         @Schema(description = "ID do pedido para gerar as contas a receber", example = "1")
         Long idPedido,

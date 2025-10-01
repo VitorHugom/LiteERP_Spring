@@ -1,9 +1,11 @@
 package com.example.lite_erp.entities.fluxo_caixa.conta_caixa;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "DTO para criação/atualização de conta de caixa")
 public record ContaCaixaRequestDTO(
         @Schema(description = "Descrição da conta de caixa", example = "Caixa Principal")

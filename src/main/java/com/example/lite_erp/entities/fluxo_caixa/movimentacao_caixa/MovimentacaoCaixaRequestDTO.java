@@ -1,10 +1,12 @@
 package com.example.lite_erp.entities.fluxo_caixa.movimentacao_caixa;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "DTO para criação de movimentação de caixa")
 public record MovimentacaoCaixaRequestDTO(
         @Schema(description = "ID da conta de caixa", example = "1")
