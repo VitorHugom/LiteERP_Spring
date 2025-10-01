@@ -58,6 +58,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",   // UI do Swagger
                                 "/swagger-ui.html"  // Página principal do Swagger
                         ).permitAll()
+                        .requestMatchers("/actuator/health").permitAll()  // Health check para Docker
                         .requestMatchers("/usuario/**").hasRole("GERENCIAL")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptions -> exceptions
