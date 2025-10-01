@@ -28,7 +28,48 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<spring.profiles.active>local</spring.profiles.active>
 	</properties>
+
+	<profiles>
+		<!-- Profile para desenvolvimento local -->
+		<profile>
+			<id>local</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<spring.profiles.active>local</spring.profiles.active>
+				<activatedProperties>local</activatedProperties>
+			</properties>
+		</profile>
+
+		<!-- Profile para produção/Docker -->
+		<profile>
+			<id>docker</id>
+			<properties>
+				<spring.profiles.active>docker</spring.profiles.active>
+				<activatedProperties>docker</activatedProperties>
+			</properties>
+		</profile>
+
+		<!-- Desabilitar profiles herdados do Spring Boot Parent que não usamos -->
+		<profile>
+			<id>native</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<!-- Profile vazio para desabilitar o native do parent -->
+		</profile>
+
+		<profile>
+			<id>nativeTest</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<!-- Profile vazio para desabilitar o nativeTest do parent -->
+		</profile>
+	</profiles>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -41,6 +82,10 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
@@ -74,6 +119,8 @@
 			<artifactId>postgresql</artifactId>
 		</dependency>
 
+
+
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
@@ -99,6 +146,9 @@
 							<artifactId>lombok</artifactId>
 						</exclude>
 					</excludes>
+					<profiles>
+						<profile>${spring.profiles.active}</profile>
+					</profiles>
 				</configuration>
 			</plugin>
 		</plugins>

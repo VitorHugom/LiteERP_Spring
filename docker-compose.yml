@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  liteerp-db:
+    image: postgres:15-alpine
+    container_name: liteerp-db
+    environment:
+      POSTGRES_DB: LiteERP
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - liteerp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicação LiteERP
+  liteerp-app:
+    build: .
+    container_name: liteerp-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATABASE_URL: jdbc:postgresql://liteerp-db:5432/LiteERP
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: postgres
+      JWT_SECRET: seguranca-top-production-compose
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    depends_on:
+      liteerp-db:
+        condition: service_healthy
+    networks:
+      - liteerp-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  liteerp-network:
+    driver: bridge

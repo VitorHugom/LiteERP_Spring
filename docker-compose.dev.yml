@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  # Apenas o banco de dados para desenvolvimento local
+  # A aplicação roda via IntelliJ com profile 'local'
+  liteerp-db-dev:
+    image: postgres:15-alpine
+    container_name: liteerp-db-dev
+    environment:
+      POSTGRES_DB: LiteERP
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1804
+    ports:
+      - "54320:5432"  # Porta diferente para não conflitar
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - liteerp-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  liteerp-dev-network:
+    driver: bridge
