@@ -9,7 +9,7 @@ on:
     types: [ published ]
 
 env:
-  DOCKER_IMAGE_NAME: lite-erp
+  DOCKER_IMAGE_NAME: lite-erp-backend
   REGISTRY: docker.io
 
 jobs:
@@ -68,6 +68,8 @@ jobs:
           type=semver,pattern={{version}}
           type=semver,pattern={{major}}.{{minor}}
           type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,prefix={{branch}}-,format=short
+          type=sha,format=short
           
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
