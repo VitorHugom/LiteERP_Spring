@@ -64,8 +64,26 @@ services:
       - lite-erp-network
     restart: unless-stopped
 
+  # Cloudflare Tunnel (Cloudflared)
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: liteerp-cloudflared
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - liteerp-backend
+      - liteerp-frontend
+    networks:
+      - lite-erp-network
+    restart: unless-stopped
+    # Volumes para persistir configurações (opcional)
+    volumes:
+      - cloudflared_data:/etc/cloudflared
+
 volumes:
   liteerp_db_data:
+  cloudflared_data:
 
 networks:
   lite-erp-network:

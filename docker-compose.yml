@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: LiteERP
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: 1804
     ports:
       - "5433:5432"
     volumes:
