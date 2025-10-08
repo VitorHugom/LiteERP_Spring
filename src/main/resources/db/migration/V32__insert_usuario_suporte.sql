@@ -1,7 +1,7 @@
 -- V32__insert_usuario_suporte.sql
 -- Migration para inserir usuário de suporte
 
-INSERT INTO usuarios (nome_usuario, email, senha, categoria_id, status, telefone, criado_em)
+INSERT INTO usuario (nome_usuario, email, senha, categoria_id, status, telefone, criado_em)
 VALUES (
   'suporte',
   'lite-erp-enterprise@gmail.com',
@@ -14,6 +14,6 @@ VALUES (
 ON CONFLICT (email) DO NOTHING;
 
 -- Atualiza sequência de id (ajuste o nome da sequência se for diferente)
-SELECT setval('usuarios_id_seq', GREATEST((SELECT MAX(id) FROM usuarios), 1));
+SELECT setval('usuario_id_seq', GREATEST((SELECT MAX(id) FROM usuario), 1));
 
-COMMENT ON TABLE usuarios IS 'Tabela de usuários do sistema';
+COMMENT ON TABLE usuario IS 'Tabela de usuários do sistema';
