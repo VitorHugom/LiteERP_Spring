@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()
                         .requestMatchers(
@@ -72,14 +73,30 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
+        // Permite o domínio principal e qualquer subdomínio de lite-erp-enterprise.com
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "https://lite-erp-enterprise.com",
                 "https://*.lite-erp-enterprise.com",
-                "http://localhost:4200"
+                "http://localhost:4200",
+                "http://localhost:*"
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // Permite todos os métodos HTTP necessários
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+
+        // Permite todos os headers (importante para CORS funcionar corretamente)
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Expõe o header Authorization para o cliente
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Type"));
+
+        // Permite credenciais (cookies, authorization headers, etc)
         configuration.setAllowCredentials(true);
+
+        // Define o tempo de cache do preflight (em segundos)
+        configuration.setMaxAge(3600L);
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
