@@ -1,6 +1,5 @@
 package com.example.lite_erp.infra.security;
 
-import com.example.lite_erp.infra.cors.CorsConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,9 +27,6 @@ public class SecurityConfig {
     private final SecurityFilter securityFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-
-    @Autowired
-    private CorsConfig corsConfig;
 
     @Autowired
     public SecurityConfig(CustomUserDetailsService userDetailsService,
