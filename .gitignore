@@ -40,3 +40,8 @@ cloudflared/
 ### Docker ###
 # Logs do Docker
 docker-compose.override.yml
+
+### Environment Variables ###
+# Arquivo com credenciais sensíveis
+.env
+# Manter apenas o .env.example no repositório

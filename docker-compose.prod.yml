@@ -1,42 +1,20 @@
 version: '3.8'
 
 services:
-  # Banco de dados PostgreSQL
-  liteerp-db:
-    image: postgres:15-alpine
-    container_name: liteerp-db
-    environment:
-      POSTGRES_DB: LiteERP
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1804
-    # Sem exposição de portas - apenas comunicação interna via Docker network
-    volumes:
-      - liteerp_db_data:/var/lib/postgresql/data
-    networks:
-      - lite-erp-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend LiteERP (Spring Boot)
+  # Backend LiteERP (Spring Boot) - PRODUÇÃO
   liteerp-backend:
     image: vitorhugoms/lite-erp-backend:latest
     container_name: liteerp-backend
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DATABASE_URL: jdbc:postgresql://liteerp-db:5432/LiteERP
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: 1804
-      JWT_SECRET: seguranca-top
+      # Configurar DATABASE_URL para apontar para seu banco de dados externo
+      DATABASE_URL: ${DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/LiteERP}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-1804}
+      JWT_SECRET: ${JWT_SECRET:-seguranca-top-production}
       SERVER_PORT: 8080
     ports:
-      - "8080:8080"  # Exposto para proxy reverso
-    depends_on:
-      liteerp-db:
-        condition: service_healthy
+      - "8080:8080"  # Exposto para proxy reverso/Cloudflare Tunnel
     networks:
       - lite-erp-network
     restart: unless-stopped
@@ -46,41 +24,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  # Frontend LiteERP (Angular)
-  liteerp-frontend:
-    image: vitorhugoms/lite-erp-frontend:latest
-    container_name: liteerp-frontend
-    environment:
-      # Configurações do frontend Angular - PRODUÇÃO
-      # Frontend se comunica com API via tunnel
-      API_URL: ${API_URL:-https://api.lite-erp-enterprise.com}
-    ports:
-      - "4200:80"  # Exposto para proxy reverso (mantendo consistência com local)
-    depends_on:
-      liteerp-backend:
-        condition: service_healthy
-    networks:
-      - lite-erp-network
-    restart: unless-stopped
-
-  # Cloudflare Tunnel (Cloudflared)
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    container_name: liteerp-cloudflared
-    command: tunnel --config /etc/cloudflared/config.yml run
-    depends_on:
-      - liteerp-backend
-      - liteerp-frontend
-    networks:
-      - lite-erp-network
-    restart: unless-stopped
-    volumes:
-      - ./config.yml:/etc/cloudflared/config.yml:ro
-      - ./cloudflared:/etc/cloudflared
-
-volumes:
-  liteerp_db_data:
 
 networks:
   lite-erp-network:

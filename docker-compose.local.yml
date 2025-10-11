@@ -1,42 +1,20 @@
 version: '3.8'
 
 services:
-  # Banco de dados PostgreSQL
-  liteerp-db:
-    image: postgres:15-alpine
-    container_name: liteerp-db
-    environment:
-      POSTGRES_DB: LiteERP
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1804
-    ports:
-      - "5433:5432"  # Porta alterada para não conflitar
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - lite-erp-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Backend LiteERP (Spring Boot)
+  # Backend LiteERP (Spring Boot) - TESTE LOCAL
   liteerp-backend:
     image: vitorhugoms/lite-erp-backend:latest
     container_name: liteerp-backend
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DATABASE_URL: jdbc:postgresql://liteerp-db:5432/LiteERP
-      DATABASE_USERNAME: postgres
-      DATABASE_PASSWORD: 1804
-      JWT_SECRET: seguranca-top-production-compose
+      # Configurar DATABASE_URL para apontar para seu banco de dados externo
+      DATABASE_URL: ${DATABASE_URL:-jdbc:postgresql://host.docker.internal:5432/LiteERP}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-1804}
+      JWT_SECRET: ${JWT_SECRET:-seguranca-top-local}
       SERVER_PORT: 8080
     ports:
       - "8080:8080"
-    depends_on:
-      liteerp-db:
-        condition: service_healthy
     networks:
       - lite-erp-network
     restart: unless-stopped
@@ -46,26 +24,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-
-  # Frontend LiteERP (React/Angular/Vue)
-  liteerp-frontend:
-    image: vitorhugoms/lite-erp-frontend:latest
-    container_name: liteerp-frontend
-    environment:
-      # Configurações do frontend Angular - DESENVOLVIMENTO LOCAL
-      # Frontend se comunica com backend via rede Docker interna
-      API_URL: http://liteerp-backend:8080
-    ports:
-      - "4200:80"  # Frontend na porta 4200 como você usava antes
-    depends_on:
-      liteerp-backend:
-        condition: service_healthy
-    networks:
-      - lite-erp-network
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
 
 networks:
   lite-erp-network:
