@@ -1,9 +1,0 @@
-tunnel: c3bfb014-1aa1-411c-a791-d6821ff007d3
-credentials-file: /etc/cloudflared/c3bfb014-1aa1-411c-a791-d6821ff007d3.json
-
-ingress:
-  - hostname: lite-erp-enterprise.com
-    service: http://liteerp-frontend:80
-  - hostname: api.lite-erp-enterprise.com
-    service: http://liteerp-backend:8080
-  - service: http_status:404
