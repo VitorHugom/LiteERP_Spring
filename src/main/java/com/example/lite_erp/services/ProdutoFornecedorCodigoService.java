@@ -63,13 +63,13 @@ public class ProdutoFornecedorCodigoService {
         Fornecedores fornecedor = fornecedoresRepository.findById(dto.idFornecedor())
                 .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado com ID: " + dto.idFornecedor()));
 
-        // Validar se já existe vínculo entre produto e fornecedor
-        Optional<ProdutoFornecedorCodigo> vinculoExistente = 
-                repository.findByProdutoIdAndFornecedorId(dto.idProduto(), dto.idFornecedor());
-        
-        if (vinculoExistente.isPresent()) {
-            throw new RuntimeException("Já existe um vínculo entre este produto e fornecedor. " +
-                    "Use a atualização para modificar o código.");
+        // Validar se o código do fornecedor já está sendo usado (mesmo código não pode apontar para produtos diferentes)
+        Optional<ProdutoFornecedorCodigo> codigoExistente =
+                repository.findByCodigoFornecedorAndFornecedorId(dto.codigoFornecedor(), dto.idFornecedor());
+
+        if (codigoExistente.isPresent()) {
+            throw new RuntimeException("Este código do fornecedor já está vinculado ao produto: " +
+                    codigoExistente.get().getProduto().getDescricao());
         }
 
         // Criar novo vínculo
@@ -89,8 +89,18 @@ public class ProdutoFornecedorCodigoService {
     @Transactional
     public Optional<ProdutoFornecedorCodigo> atualizarVinculo(Long id, ProdutoFornecedorCodigoRequestDTO dto) {
         return repository.findById(id).map(vinculo -> {
-            // Atualizar código do fornecedor
-            if (dto.codigoFornecedor() != null) {
+            // Se mudou o código do fornecedor, validar se o novo código já existe
+            if (dto.codigoFornecedor() != null && !dto.codigoFornecedor().equals(vinculo.getCodigoFornecedor())) {
+                Integer idFornecedor = dto.idFornecedor() != null ? dto.idFornecedor() : vinculo.getFornecedor().getId();
+
+                Optional<ProdutoFornecedorCodigo> codigoExistente =
+                        repository.findByCodigoFornecedorAndFornecedorId(dto.codigoFornecedor(), idFornecedor);
+
+                if (codigoExistente.isPresent() && !codigoExistente.get().getId().equals(id)) {
+                    throw new RuntimeException("Este código do fornecedor já está vinculado ao produto: " +
+                            codigoExistente.get().getProduto().getDescricao());
+                }
+
                 vinculo.setCodigoFornecedor(dto.codigoFornecedor());
             }
 
@@ -99,36 +109,28 @@ public class ProdutoFornecedorCodigoService {
                 vinculo.setAtivo(dto.ativo());
             }
 
-            // Se mudou produto ou fornecedor, validar duplicidade
+            // Atualizar produto se fornecido
             if (dto.idProduto() != null && !dto.idProduto().equals(vinculo.getProduto().getId())) {
                 Produtos novoProduto = produtosRepository.findById(dto.idProduto())
                         .orElseThrow(() -> new RuntimeException("Produto não encontrado com ID: " + dto.idProduto()));
-                
-                // Validar duplicidade com novo produto
-                Integer idFornecedor = dto.idFornecedor() != null ? dto.idFornecedor() : vinculo.getFornecedor().getId();
-                Optional<ProdutoFornecedorCodigo> vinculoExistente = 
-                        repository.findByProdutoIdAndFornecedorId(dto.idProduto(), idFornecedor);
-                
-                if (vinculoExistente.isPresent() && !vinculoExistente.get().getId().equals(id)) {
-                    throw new RuntimeException("Já existe um vínculo entre este produto e fornecedor.");
-                }
-                
                 vinculo.setProduto(novoProduto);
             }
 
+            // Atualizar fornecedor se fornecido
             if (dto.idFornecedor() != null && !dto.idFornecedor().equals(vinculo.getFornecedor().getId())) {
                 Fornecedores novoFornecedor = fornecedoresRepository.findById(dto.idFornecedor())
                         .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado com ID: " + dto.idFornecedor()));
-                
-                // Validar duplicidade com novo fornecedor
-                Long idProduto = dto.idProduto() != null ? dto.idProduto() : vinculo.getProduto().getId();
-                Optional<ProdutoFornecedorCodigo> vinculoExistente = 
-                        repository.findByProdutoIdAndFornecedorId(idProduto, dto.idFornecedor());
-                
-                if (vinculoExistente.isPresent() && !vinculoExistente.get().getId().equals(id)) {
-                    throw new RuntimeException("Já existe um vínculo entre este produto e fornecedor.");
+
+                // Validar se o código já existe no novo fornecedor
+                String codigoFornecedor = dto.codigoFornecedor() != null ? dto.codigoFornecedor() : vinculo.getCodigoFornecedor();
+                Optional<ProdutoFornecedorCodigo> codigoExistente =
+                        repository.findByCodigoFornecedorAndFornecedorId(codigoFornecedor, dto.idFornecedor());
+
+                if (codigoExistente.isPresent() && !codigoExistente.get().getId().equals(id)) {
+                    throw new RuntimeException("Este código já existe no fornecedor selecionado e está vinculado ao produto: " +
+                            codigoExistente.get().getProduto().getDescricao());
                 }
-                
+
                 vinculo.setFornecedor(novoFornecedor);
             }
 

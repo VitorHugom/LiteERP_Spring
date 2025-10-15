@@ -22,11 +22,6 @@ public interface ProdutoFornecedorCodigoRepository extends JpaRepository<Produto
     List<ProdutoFornecedorCodigo> findByFornecedorId(Integer idFornecedor);
 
     /**
-     * Busca vínculo específico entre produto e fornecedor
-     */
-    Optional<ProdutoFornecedorCodigo> findByProdutoIdAndFornecedorId(Long idProduto, Integer idFornecedor);
-
-    /**
      * Busca produto pelo código do fornecedor (usado na importação de NFe)
      * Retorna o vínculo ativo que corresponde ao código informado para aquele fornecedor
      */

@@ -9,8 +9,16 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProdutosRepository extends JpaRepository<Produtos, Long> {
+
+    Optional<Produtos> findByCodEan(String codEan);
+
+    List<Produtos> findByCodNcm(String codNcm);
+
+    @Query("SELECT p FROM Produtos p WHERE LOWER(p.descricao) LIKE LOWER(CONCAT('%', :termo, '%')) ORDER BY p.descricao")
+    List<Produtos> findByDescricaoContaining(@Param("termo") String termo);
     Page<Produtos> findByDescricaoContainingIgnoreCase(String descricao, Pageable pageable);
 
     @Query("SELECT new com.example.lite_erp.entities.produtos.ProdutosBuscaResponseDTO(" +

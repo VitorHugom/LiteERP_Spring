@@ -8,8 +8,11 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface FornecedoresRepository extends JpaRepository<Fornecedores, Integer> {
+
+    Optional<Fornecedores> findByCnpj(String cnpj);
     Page<Fornecedores> findByRazaoSocialContainingIgnoreCase(String nome, Pageable pageable);
 
     @Query("SELECT new com.example.lite_erp.entities.fornecedores.FornecedoresBuscaResponseDTO(" +
