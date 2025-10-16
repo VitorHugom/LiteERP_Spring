@@ -15,11 +15,14 @@ Um sistema ERP básico desenvolvido em Spring Boot para pequenas empresas.
 - **Docker**
 - **Cloudflare Tunnel** (Deploy em produção)
 
-## 🌐 Deploy com Cloudflare Tunnel
+## 📚 Documentação
 
-### 📖 Documentação Completa:
-- **[TUTORIAL-CLOUDFLARE-TUNNEL.md](TUTORIAL-CLOUDFLARE-TUNNEL.md)** - Guia passo a passo completo
+### 📖 Guias de Configuração:
+- **[TUTORIAL-CLOUDFLARE-TUNNEL.md](TUTORIAL-CLOUDFLARE-TUNNEL.md)** - Guia passo a passo completo para deploy
 - **[CHECKLIST-DEPLOY.md](CHECKLIST-DEPLOY.md)** - Lista de verificação antes do deploy
+- **[CONFIGURACAO-SMTP2GO.md](CONFIGURACAO-SMTP2GO.md)** - Configuração de email com SMTP2GO
+
+## 🌐 Deploy com Cloudflare Tunnel
 
 ### ⚡ Deploy Rápido:
 ```bash

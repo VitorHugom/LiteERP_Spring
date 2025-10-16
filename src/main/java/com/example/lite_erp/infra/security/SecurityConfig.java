@@ -49,6 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/login").permitAll()
                         .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/recuperar-senha/**").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",  // Documentação JSON do OpenAPI
                                 "/swagger-ui/**",   // UI do Swagger
