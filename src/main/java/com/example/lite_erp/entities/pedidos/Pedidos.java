@@ -25,8 +25,11 @@ public class Pedidos {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "id_cliente", nullable = false)
+    @JoinColumn(name = "id_cliente", nullable = true)
     private Clientes cliente;
+
+    @Column(name = "cliente_final")
+    private String clienteFinal;
 
     @ManyToOne
     @JoinColumn(name = "id_vendedor")

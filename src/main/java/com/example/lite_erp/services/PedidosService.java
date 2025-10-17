@@ -62,7 +62,7 @@ public class PedidosService {
         return pedidosRepository.findById(id)
                 .map(pedido -> new PedidosBuscaResponseDTO(
                         pedido.getId(),
-                        pedido.getCliente().getRazaoSocial(),
+                        pedido.getCliente() != null ? pedido.getCliente().getRazaoSocial() : pedido.getClienteFinal(),
                         pedido.getVendedor().getNome(),
                         pedido.getDataEmissao(),
                         pedido.getStatus()
@@ -72,8 +72,11 @@ public class PedidosService {
     // Método para criar um novo pedido
     public Pedidos criarPedido(PedidosRequestDTO dto) {
         // Busca as entidades pelos seus IDs
-        Clientes cliente = clientesRepository.findById(dto.idCliente())
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        Clientes cliente = null;
+        if (dto.idCliente() != null) {
+            cliente = clientesRepository.findById(dto.idCliente())
+                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        }
 
         Vendedores vendedor = vendedoresRepository.findById(dto.idVendedor())
                 .orElseThrow(() -> new RuntimeException("Vendedor não encontrado"));
@@ -84,6 +87,7 @@ public class PedidosService {
         Pedidos pedido = new Pedidos(
                 null,
                 cliente,
+                dto.clienteFinal(),
                 vendedor,
                 dto.dataEmissao(),
                 dto.valorTotal(),
@@ -97,8 +101,11 @@ public class PedidosService {
     // Método para atualizar um pedido existente
     public Optional<Pedidos> atualizarPedido(Long id, PedidosRequestDTO dto) {
         return pedidosRepository.findById(id).map(pedido -> {
-            Clientes cliente = clientesRepository.findById(dto.idCliente())
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+            Clientes cliente = null;
+            if (dto.idCliente() != null) {
+                cliente = clientesRepository.findById(dto.idCliente())
+                        .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+            }
 
             Vendedores vendedor = vendedoresRepository.findById(dto.idVendedor())
                     .orElseThrow(() -> new RuntimeException("Vendedor não encontrado"));
@@ -107,6 +114,7 @@ public class PedidosService {
                     .orElseThrow(() -> new RuntimeException("Tipo de cobrança não encontrado"));
 
             pedido.setCliente(cliente);
+            pedido.setClienteFinal(dto.clienteFinal());
             pedido.setVendedor(vendedor);
             pedido.setDataEmissao(dto.dataEmissao());
             pedido.setValorTotal(dto.valorTotal());
@@ -198,11 +206,16 @@ public class PedidosService {
         Long contaCaixaId = usuarioContaCaixaService.obterContaCaixaPadraoUsuarioLogado();
         Long usuarioLogadoId = AuthenticationUtils.getUsuarioLogadoId();
 
+        // Determinar o nome do cliente
+        String nomeCliente = pedido.getCliente() != null
+                ? pedido.getCliente().getRazaoSocial()
+                : pedido.getClienteFinal();
+
         // Criar movimentação de entrada via integração
         fluxoCaixaIntegracaoService.processarRecebimentoPedido(
                 pedido.getId(),
                 "PED-" + pedido.getId(),
-                pedido.getCliente().getRazaoSocial(),
+                nomeCliente,
                 pedido.getValorTotal(),
                 contaCaixaId,
                 usuarioLogadoId,

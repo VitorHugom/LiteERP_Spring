@@ -14,29 +14,29 @@ public interface PedidosRepository extends JpaRepository<Pedidos, Long> {
     List<Pedidos> findByStatusOrderByIdDesc(String status);
 
     @Query("SELECT new com.example.lite_erp.entities.pedidos.PedidosBuscaResponseDTO(" +
-            "p.id, p.cliente.razaoSocial, p.vendedor.nome, p.dataEmissao, p.status) " +
+            "p.id, COALESCE(c.razaoSocial, p.clienteFinal), v.nome, p.dataEmissao, p.status) " +
             "FROM Pedidos p " +
-            "JOIN p.cliente c " +
+            "LEFT JOIN p.cliente c " +
             "JOIN p.vendedor v " +
             "ORDER BY p.dataEmissao DESC")
     Page<PedidosBuscaResponseDTO> findPedidosForBusca(Pageable pageable);
 
     @Query("SELECT new com.example.lite_erp.entities.pedidos.PedidosBuscaResponseDTO(" +
-            "p.id, c.razaoSocial, v.nome, p.dataEmissao, p.status) " +
+            "p.id, COALESCE(c.razaoSocial, p.clienteFinal), v.nome, p.dataEmissao, p.status) " +
             "FROM Pedidos p " +
-            "JOIN p.cliente c " +
+            "LEFT JOIN p.cliente c " +
             "JOIN p.vendedor v " +
-            "WHERE LOWER(c.razaoSocial) LIKE LOWER(:razaoSocial) " +
+            "WHERE LOWER(COALESCE(c.razaoSocial, p.clienteFinal)) LIKE LOWER(:razaoSocial) " +
             "ORDER BY p.dataEmissao DESC")
     Page<PedidosBuscaResponseDTO> findPedidosForBuscaByClienteRazaoSocial(@Param("razaoSocial") String razaoSocial, Pageable pageable);
 
     @Query("""
-        SELECT p 
+        SELECT p
         FROM Pedidos p
-        JOIN p.cliente c
+        LEFT JOIN p.cliente c
         JOIN p.vendedor v
         JOIN p.tipoCobranca t
-        WHERE c.id       = COALESCE(:idCliente,      c.id)
+        WHERE (c.id IS NULL OR c.id = COALESCE(:idCliente, c.id))
           AND v.id       = COALESCE(:idVendedor,     v.id)
           AND p.dataEmissao >= COALESCE(:dataInicio, p.dataEmissao)
           AND p.dataEmissao <= COALESCE(:dataFim,    p.dataEmissao)

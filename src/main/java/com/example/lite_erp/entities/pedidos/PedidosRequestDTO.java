@@ -7,5 +7,5 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record PedidosRequestDTO(Long idCliente, Long idVendedor, LocalDateTime dataEmissao, BigDecimal valorTotal, String status, Long idTipoCobranca) {
+public record PedidosRequestDTO(Long idCliente, String clienteFinal, Long idVendedor, LocalDateTime dataEmissao, BigDecimal valorTotal, String status, Long idTipoCobranca) {
 }

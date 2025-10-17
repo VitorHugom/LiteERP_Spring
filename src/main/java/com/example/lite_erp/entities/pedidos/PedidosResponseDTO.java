@@ -8,8 +8,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public record PedidosResponseDTO(Long id, Clientes cliente, Vendedores vendedor, LocalDateTime dataEmissao, BigDecimal valorTotal, String status, TiposCobranca tipoCobranca, LocalDateTime ultimaAtualizacao) {
+public record PedidosResponseDTO(Long id, Clientes cliente, String clienteFinal, Vendedores vendedor, LocalDateTime dataEmissao, BigDecimal valorTotal, String status, TiposCobranca tipoCobranca, LocalDateTime ultimaAtualizacao) {
     public PedidosResponseDTO(Pedidos pedidos) {
-        this(pedidos.getId(), pedidos.getCliente(), pedidos.getVendedor(), pedidos.getDataEmissao(), pedidos.getValorTotal(), pedidos.getStatus(), pedidos.getTipoCobranca(), pedidos.getUltimaAtualizacao());
+        this(pedidos.getId(), pedidos.getCliente(), pedidos.getClienteFinal(), pedidos.getVendedor(), pedidos.getDataEmissao(), pedidos.getValorTotal(), pedidos.getStatus(), pedidos.getTipoCobranca(), pedidos.getUltimaAtualizacao());
     }
 }
