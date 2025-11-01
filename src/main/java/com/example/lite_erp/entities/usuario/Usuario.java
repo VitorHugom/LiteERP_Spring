@@ -1,6 +1,7 @@
 package com.example.lite_erp.entities.usuario;
 
 import com.example.lite_erp.entities.categoria_usuario.CategoriasUsuario;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
