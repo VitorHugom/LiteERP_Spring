@@ -75,6 +75,7 @@ public class Clientes {
     private String rg;
 
     @Column(name = "data_nascimento")
+    @Schema(description = "Data de nascimento do cliente", example = "2003-04-18")
     private LocalDate dataNascimento;
 
     @Column(length = 255)
@@ -96,7 +97,8 @@ public class Clientes {
     @Column(name = "status", nullable = false)
     private Boolean status = true;
 
-    @Column(name = "data_cadastro")
+    @Column(name = "data_cadastro", updatable = false)
+    @Schema(description = "Data de cadastro do cliente (gerada automaticamente)", example = "2025-11-01")
     private LocalDate dataCadastro = LocalDate.now();
 
     @Column(name = "limite_credito", precision = 10, scale = 2)

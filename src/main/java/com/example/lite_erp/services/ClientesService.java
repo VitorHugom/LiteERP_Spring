@@ -58,7 +58,7 @@ public class ClientesService {
                 dto.vendedor(),
                 dto.observacao(),
                 dto.status(),
-                dto.dataCadastro(),
+                LocalDate.now(), // Data de cadastro gerada pelo backend
                 dto.limiteCredito()
         );
         return clientesRepository.save(cliente);
@@ -87,7 +87,6 @@ public class ClientesService {
             cliente.setVendedor(dto.vendedor());
             cliente.setObservacao(dto.observacao());
             cliente.setStatus(dto.status());
-            cliente.setDataCadastro(dto.dataCadastro());
             cliente.setLimiteCredito(dto.limiteCredito());
             return clientesRepository.save(cliente);
         });
