@@ -31,13 +31,6 @@ Um sistema ERP básico desenvolvido em Spring Boot para pequenas empresas.
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
-**Estrutura necessária:**
-```
-cloudflared/
-├── cert.pem           # Certificado do Cloudflare
-└── {tunnel-id}.json   # Credenciais do tunnel
-```
-
 ## 📋 Pré-requisitos
 
 - Java 17+
@@ -90,11 +83,7 @@ A aplicação estará disponível em: `http://localhost:8080`
 ├── src/main/resources/      # Recursos e configurações
 │   ├── db/migration/        # Scripts Flyway
 │   └── application*.yml     # Configurações por profile
-├── config.yml              # Configuração Cloudflare Tunnel
 ├── docker-compose*.yml     # Configurações Docker
-├── cloudflared/            # Credenciais Cloudflare (não commitado)
-│   ├── cert.pem
-│   └── {tunnel-id}.json
 └── scripts/                # Scripts utilitários
     └── run-local.bat
 ```
