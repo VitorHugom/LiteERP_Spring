@@ -26,9 +26,8 @@ Um sistema ERP básico desenvolvido em Spring Boot para pequenas empresas.
 
 ### ⚡ Deploy Rápido:
 ```bash
-# 1. Copiar arquivos de credenciais para cloudflared/
-# 2. Ajustar config.yml com seu domínio
-# 3. Executar deploy
+
+# Executar deploy em produção
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
