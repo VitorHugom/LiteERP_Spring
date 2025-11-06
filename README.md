@@ -199,6 +199,6 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 📞 Contato
 
-Vitor Hugo - vitorhugoms@outlook.com
+Lite ERP - lite.erp.enterprise@gmail.com
 
 Link do Projeto: [https://github.com/vitorhugoms/LiteERP_Spring](https://github.com/vitorhugoms/LiteERP_Spring)
